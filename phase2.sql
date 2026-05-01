@@ -58,7 +58,7 @@ CREATE TABLE auction (
     auction_id SERIAL NOT NULL,
     item_id INTEGER NOT NULL, 
     curr_highest_bid REAL,
-    auction_status VARCHAR(20) NOT NULL,
+    auction_status VARCHAR(20) NOT NULL DEFAULT 'Active',
     winner_login VARCHAR(100),
     payment_id INTEGER,
 
