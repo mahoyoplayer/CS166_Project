@@ -1,74 +1,108 @@
-DROP TABLE IF EXISTS USER;
+DROP TABLE IF EXISTS account;
 
 
-CREATE TABLE User (
+-- Check favorite category later
+CREATE TABLE account (
     login VARCHAR(100) NOT NULL,
-    phoneNum CHAR(10) NOT NULL,
-    role VARCHAR(20) NOT NULL,
+    phone_num CHAR(10) NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'Buyer',
     password VARCHAR(100) NOT NULL,
     address VARCHAR(252) NOT NULL,
-    favoriteCategory CHAR,
-    PRIMARY KEY (login)
+    fav_category VARCHAR(50),
+    PRIMARY KEY (login),
+
+    CONSTRAINT valid_role CHECK (role IN ('Buyer', 'Seller', 'Admin'))
 );
 
--- Check what happpens for a winner delete
-CREATE TABLE Auction (
-    auctionId SERIAL NOT NULL,
-    currentHighestBid REAL,
-    auctionStatus VARCHAR(20) NOT NULL,
-    winnerLogin VARCHAR(100)
+CREATE TABLE item (
+    item_id SERIAL NOT NULL,
+    item_name VARCHAR(100) NOT NULL,
+    category VARCHAR(50) NOT NULL,
+    starting_price REAL NOT NULL,
+    lister_login VARCHAR(100) NOT NULL,
 
-    PRIMARY KEY (auctionId)
-    FOREIGN KEY (winnerLogin) REFERENCES User(login) 
+    image_url VARCHAR(100),
+    condition VARCHAR(100),
+    description TEXT,
+    
+    PRIMARY KEY (item_id),
+    FOREIGN KEY (lister_login) REFERENCES account(login) 
         ON DELETE CASCADE
-        ON UPDATE CASCADE
+        ON UPDATE CASCADE,
+
+    CONSTRAINT valid_start_price CHECK (starting_price >= 0)
 );
 
 -- Uh, confirm what happens when you delete user + auction
-CREATE TABLE Payment (
-    paymentId SERIAL NOT NULL,
-    userLogin VARCHAR(100) NOT NULL,
-    auctionId SERIAL NOT NULL,
+CREATE TABLE payment (
+    payment_id SERIAL NOT NULL,
+    login VARCHAR(100) NOT NULL,
     amount REAL NOT NULL,
-    paymentStatus VARCHAR(20) NOT NULL,
+    payment_status VARCHAR(20) NOT NULL,
 
-    PRIMARY KEY (paymentId),
-    FOREIGN KEY (userLogin) REFERENCES User(login) 
+    PRIMARY KEY (payment_id),
+    FOREIGN KEY (login) REFERENCES account (login) 
         ON DELETE CASCADE
-        ON UPDATE CASCADE
-    FOREIGN KEY (auctionId) REFERENCES Auction(auctionId) 
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
+        ON UPDATE CASCADE,
+    
+    CONSTRAINT valid_payment_status CHECK (payment_status IN ('Pending', 'Completed', 'Failed'))
 );
+
+-- Check what happpens for a winner delete
+CREATE TABLE auction (
+    auction_id SERIAL NOT NULL,
+    item_id SERIAL NOT NULL, 
+    curr_highest_bid REAL,
+    auction_status VARCHAR(20) NOT NULL,
+    winner_login VARCHAR(100),
+    payment_id SERIAL,
+
+    PRIMARY KEY (auction_id)
+    FOREIGN KEY (winner_login) REFERENCES account(login) 
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    FOREIGN KEY (payment_id) REFERENCES payment (payment_id) 
+        ON DELETE SET NULL
+        ON UPDATE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES item (item_id) 
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+
+    CONSTRAINT pos_curr_bid CHECK (curr_highest_bid >= 0)
+);
+
 
 -- Dependent on Auction
-CREATE TABLE Shipment (
-    shipmentId SERIAL NOT NULL,
+CREATE TABLE shipment (
+    shipment_id SERIAL NOT NULL,
+    auction_id SERIAL NOT NULL,
     address VARCHAR(100) NOT NULL,
-    shipmentStatus VARCHAR(20) NOT NULL,
-    trackingNumber INTEGER,
-    auctionId SERIAL NOT NULL,
-
-    PRIMARY KEY (shipmentId),
-    FOREIGN KEY (auctionId) REFERENCES Auction(auctionId) 
+    shipment_status VARCHAR(20) NOT NULL,
+    tracking_no INTEGER,
+    
+    PRIMARY KEY (shipment_id),
+    FOREIGN KEY (auction_id) REFERENCES auction (auction_id) 
         ON DELETE CASCADE
-        ON UPDATE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT valid_shipment_status CHECK (shipment_status IN ('Pending', 'Shipped', 'Delivered'))
 );
 
-CREATE TABLE Bid (
-    bidId SERIAL NOT NULL,
-    bidderLogin VARCHAR(100) NOT NULL,
-    bidAmount REAL NOT NULL,
-    bidTimestamp date NOT NULL,
-    auctionId SERIAL NOT NULL
+-- Constraint role buyer or something
+CREATE TABLE bid (
+    bid_id SERIAL NOT NULL,
+    bidder_login VARCHAR(100) NOT NULL,
+    bid_amount REAL NOT NULL,
+    bid_timestamp date NOT NULL,
+    auction_id SERIAL NOT NULL
 
-    PRIMARY KEY (bidId),
-    FOREIGN KEY (bidder_login) REFERENCES User(login)
+    PRIMARY KEY (bid_id),
+    FOREIGN KEY (bidder_login) REFERENCES account(login)
         ON DELETE CASCADE
-        ON UPDATE CASCADE
-    FOREIGN KEY (auctionId) REFERENCES Auction(auctionId)
+        ON UPDATE CASCADE,
+    FOREIGN KEY (auction_id) REFERENCES auction(auction_id)
         ON DELETE CASCADE
-        ON UPDATE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT pos_bid_amount CHECK (bid_amount > 0)
 );
 
 
@@ -87,5 +121,10 @@ CREATE TABLE Persons (
     City VARCHAR(255),
     CONSTRAINT chk_PersonAge CHECK (Age >= 18 AND City = 'Sandnes')
 );
+
+Naming Practices - 
+Everything lower case, _ for spaces like python
+
+Auction
 
 */
