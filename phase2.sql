@@ -1,5 +1,9 @@
-DROP TABLE IF EXISTS account;
-
+DROP TABLE IF EXISTS account CASCADE;
+DROP TABLE IF EXISTS item CASCADE;
+DROP TABLE IF EXISTS payment CASCADE;
+DROP TABLE IF EXISTS auction CASCADE;
+DROP TABLE IF EXISTS shipment CASCADE;
+DROP TABLE IF EXISTS bid CASCADE;
 
 -- Check favorite category later
 CREATE TABLE account (
@@ -21,7 +25,7 @@ CREATE TABLE item (
     starting_price REAL NOT NULL,
     lister_login VARCHAR(100) NOT NULL,
 
-    image_url VARCHAR(100),
+    image_url TEXT,
     condition VARCHAR(100),
     description TEXT,
     
@@ -49,17 +53,18 @@ CREATE TABLE payment (
 );
 
 -- Check what happpens for a winner delete
+-- Should payment_id be unique?
 CREATE TABLE auction (
     auction_id SERIAL NOT NULL,
-    item_id SERIAL NOT NULL, 
+    item_id INTEGER NOT NULL, 
     curr_highest_bid REAL,
     auction_status VARCHAR(20) NOT NULL,
     winner_login VARCHAR(100),
-    payment_id SERIAL,
+    payment_id INTEGER,
 
-    PRIMARY KEY (auction_id)
+    PRIMARY KEY (auction_id),
     FOREIGN KEY (winner_login) REFERENCES account(login) 
-        ON DELETE CASCADE
+        ON DELETE SET NULL
         ON UPDATE CASCADE,
     FOREIGN KEY (payment_id) REFERENCES payment (payment_id) 
         ON DELETE SET NULL
@@ -68,14 +73,15 @@ CREATE TABLE auction (
         ON DELETE CASCADE
         ON UPDATE CASCADE,
 
-    CONSTRAINT pos_curr_bid CHECK (curr_highest_bid >= 0)
+    CONSTRAINT pos_curr_bid CHECK (curr_highest_bid >= 0),
+    CONSTRAINT valid_auction_status CHECK (auction_status IN ('Active', 'Closed'))
 );
 
 
 -- Dependent on Auction
 CREATE TABLE shipment (
     shipment_id SERIAL NOT NULL,
-    auction_id SERIAL NOT NULL,
+    auction_id INTEGER NOT NULL,
     address VARCHAR(100) NOT NULL,
     shipment_status VARCHAR(20) NOT NULL,
     tracking_no INTEGER,
@@ -90,11 +96,11 @@ CREATE TABLE shipment (
 -- Constraint role buyer or something
 CREATE TABLE bid (
     bid_id SERIAL NOT NULL,
+    auction_id INTEGER NOT NULL,
     bidder_login VARCHAR(100) NOT NULL,
     bid_amount REAL NOT NULL,
-    bid_timestamp date NOT NULL,
-    auction_id SERIAL NOT NULL
-
+    bid_timestamp TIMESTAMP NOT NULL,
+    
     PRIMARY KEY (bid_id),
     FOREIGN KEY (bidder_login) REFERENCES account(login)
         ON DELETE CASCADE
