@@ -1,4 +1,7 @@
 import questionary as q
+"""
+https://questionary.readthedocs.io/en/stable/pages/quickstart.html
+"""
 
 class Screen:
     def __init__(self, app):
@@ -9,9 +12,9 @@ class Screen:
 
 class LoginScreen(Screen):
     def show(self):
+        
         login = q.text("Login: ").ask()
         pw = q.password("Password: ").ask()
-
 
         # Determine login success and user type
         if login == "a" and pw == "a":
@@ -19,9 +22,9 @@ class LoginScreen(Screen):
             return "next_window"
         
         # No match, invalid
-        q.print("\n\nIncorrect Credentials. Please try again.", style = "bold fg:red", end = "\n\n")
+        q.print("\n\n Incorrect Credentials. Please try again.", style = "bold fg:red", end = "\n\n")
 
         q.press_any_key_to_continue().ask()
         
         return "login"
-
+    

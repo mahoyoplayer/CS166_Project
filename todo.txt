@@ -1,5 +1,51 @@
-Phase 3 Guide
+Welcome
+    Login
+    Register
 
+Login Screen
+    user + Password
+
+Buyers (General User)
+    Buyer Dashboard (req)
+    Browse Items (req)
+    Search Auctions (req)
+        View Auction Status
+        Place Bids 
+            Cannot bid on own item
+            Must place a higher bid than existing one.
+    View/Edit Profile (req)
+        Can update all fields except login and role
+        phone_number
+        Password
+        address
+        favoriteCategory
+    
+    My Bids (That you currently bid on, not necessary)
+    Past Auction History (not needed)
+    Payment handling (not needed)
+    Shipment Tracking (not needed)
+
+Sellers (Can Create and Manage Auction Listings)
+    Seller Dashboard (similar to Buyer but more option)
+    Create Item (req)
+    Update Your Items (req)
+    Create Auction Listing (req)
+    My Auctions 
+        End Auction (Can be done at any time)
+    View Sold Items/Winners
+
+Admin
+    Admin Dashboard
+    Manage Users
+        Change usernames, passwords, etc.
+        Change User Role - admin, seller, buyer
+    Manage/Remove Item
+    Monitor Auctions
+
+Shipment is only after payment completion.
+
+
+Phase 3 Guide
 
 Must use the provided relational schema from Phase 2. 
 
