@@ -1,0 +1,36 @@
+Phase 3 Guide
+
+
+Must use the provided relational schema from Phase 2. 
+
+Tasks
+Physical database design and performance tuning (aka indexing)
+Client application development 
+    Create an application that lets users interact with the auction system. User can do things like browse items, place bids, etc.
+Complete technical documentation
+
+Should be done in PostgreSQL.
+Implement in Python
+Must do a final demo.
+
+Grading 
+30% SQL Queries/Report and core functionality
+    Users logging in.
+    Buyers playing bids.
+    Highest bidder becomes winner.
+    Etc.
+10% physical database design and performance tuning
+
+10% client application development
+    The whole entire program with UI
+10% documentation quality
+    How to run the project
+    Database Setup
+    Assumptions
+    Each group member's contribution
+
+Extra Credit (10%)
+User-friendly GUI, additional features, or meaningful dataset or
+schema extensions.
+    Robust error-handling
+    Encrypted Passwords?
