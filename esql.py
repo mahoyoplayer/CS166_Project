@@ -1,18 +1,5 @@
 import psycopg
 
-#!/usr/bin/env python3
-# ----------------------------------------------------------
-# Template Python User Interface
-# ================================
-#
-# Database Management Systems
-# Department of Computer Science & Engineering
-# University of California - Riverside
-#
-# Target DBMS: 'Postgres'
-#
-# ----------------------------------------------------------
-
 """
 Run with:
 python3 EmbeddedSQL.py ryan032_lab6_DB 37353 ryan032
