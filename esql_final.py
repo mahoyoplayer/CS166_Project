@@ -4,7 +4,7 @@ import sys
 class QueryResult:
     def __init__(self, rows, col_names):
         self.rows = rows
-        self.col_names = self.col_names
+        self.col_names = col_names
     
     def empty(self):
         return len(self.rows) == 0
