@@ -22,6 +22,7 @@ class WelcomeScreen(Screen):
                 "Login",
                 "Register"
             ]).ask()
+        # Returns either "login" or "register"
         return res.lower()
 
 class RegisterScreen(Screen):
