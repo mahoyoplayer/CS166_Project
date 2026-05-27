@@ -9,13 +9,17 @@ def clear_console() -> None:
 class App:
     def __init__(self):
         self.running = True
+        self.current_user = None
+        self.current_role = None
         self.screen_map = {
-            "login" : LoginScreen(self)
+            "welcome" : WelcomeScreen(self),
+            "login" : LoginScreen(self),
+            "register" : RegisterScreen(self)
         }
         
     def run(self):
         # Initial Screen
-        curr_screen = "login"
+        curr_screen = "welcome"
         while self.running:
             clear_console()
             curr_screen = self.screen_map[curr_screen].show()

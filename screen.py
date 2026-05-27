@@ -1,4 +1,4 @@
-import questionary as q
+import questionary
 """
 https://questionary.readthedocs.io/en/stable/pages/quickstart.html
 """
@@ -10,11 +10,38 @@ class Screen:
     def show(self):
         raise RuntimeError("Do not implement.")
 
+class TemplateScreen(Screen):
+    def show(self):
+        return "login"
+
+class WelcomeScreen(Screen):
+    def show(self):
+        res = questionary.select(
+            "Auction Site V1.0",
+            choices=[
+                "Login",
+                "Register"
+            ]).ask()
+        return res.lower()
+
+class RegisterScreen(Screen):
+    def show(self):
+        questionary.print("Registration")
+
+        login = questionary.text("Enter Login: ").ask()
+        pw = questionary.password("Enter Password: ").ask()
+        print("Run stored procedure")
+        x = input()
+        return "welcome"
+        return "register"
+        
+
+
 class LoginScreen(Screen):
     def show(self):
         
-        login = q.text("Login: ").ask()
-        pw = q.password("Password: ").ask()
+        login = questionary.text("Login: ").ask()
+        pw = questionary.password("Password: ").ask()
 
         # Determine login success and user type
         if login == "a" and pw == "a":
@@ -22,9 +49,9 @@ class LoginScreen(Screen):
             return "next_window"
         
         # No match, invalid
-        q.print("\n\n Incorrect Credentials. Please try again.", style = "bold fg:red", end = "\n\n")
+        questionary.print("\n\n Incorrect Credentials. Please try again.", style = "bold fg:red", end = "\n\n")
 
-        q.press_any_key_to_continue().ask()
+        questionary.press_any_key_to_continue().ask()
         
         return "login"
     
