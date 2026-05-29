@@ -178,14 +178,13 @@ class EditProfileScreen(Screen):
                 login
             )
         )
-        
+
         questionary.print(
             "\nProfile updated successfully!\n",
             style="bold fg:green"
         )
         questionary.press_any_key_to_continue().ask()
         return "home"
-
 
 class DebugScreen(Screen):
     def show(self):
@@ -195,3 +194,4 @@ class DebugScreen(Screen):
         x = input()
         
         return ""
+
