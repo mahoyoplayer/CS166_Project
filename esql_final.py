@@ -55,14 +55,14 @@ class EmbeddedSQL:
             print("Make sure you started postgres on this machine")
             sys.exit(-1)
 
-    def execute_update(self, sql):
+    def execute_update(self, sql, params=None):
         """
         Executes an update SQL statement (CREATE, INSERT, UPDATE, DELETE, DROP).
 
         :param sql: the input SQL string
         """
         cursor = self._connection.cursor()
-        cursor.execute(sql)
+        cursor.execute(sql, params)
         self._connection.commit()
         cursor.close()
 

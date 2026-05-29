@@ -17,7 +17,7 @@ CREATE TABLE users (
 );
 
 CREATE TABLE item (
-    item_id INT PRIMARY KEY,
+    item_id SERIAL PRIMARY KEY,
     item_name VARCHAR(100) NOT NULL,
     category VARCHAR(50) NOT NULL,
     starting_price NUMERIC(10,2) NOT NULL CHECK (starting_price >= 0),
@@ -34,7 +34,7 @@ CREATE TABLE item (
 
 
 CREATE TABLE auction (
-    auction_id INT PRIMARY KEY,
+    auction_id SERIAL PRIMARY KEY,
     item_id INT NOT NULL UNIQUE,
     seller_login VARCHAR(50) NOT NULL,
     seller_role VARCHAR(10) NOT NULL DEFAULT 'Seller' CHECK (seller_role = 'Seller'),
@@ -59,7 +59,7 @@ CREATE TABLE auction (
 
 
 CREATE TABLE bid (
-    bid_id INT PRIMARY KEY,
+    bid_id SERIAL PRIMARY KEY,
     auction_id INT NOT NULL,
     buyer_login VARCHAR(50) NOT NULL,
     buyer_role VARCHAR(10) NOT NULL DEFAULT 'Buyer' CHECK (buyer_role = 'Buyer'),
@@ -76,7 +76,7 @@ CREATE TABLE bid (
 
 
 CREATE TABLE payment (
-    payment_id INT PRIMARY KEY,
+    payment_id SERIAL PRIMARY KEY,
     auction_id INT NOT NULL UNIQUE,
     buyer_login VARCHAR(50) NOT NULL,
     buyer_role VARCHAR(10) NOT NULL DEFAULT 'Buyer' CHECK (buyer_role = 'Buyer'),
@@ -94,7 +94,7 @@ CREATE TABLE payment (
 
 
 CREATE TABLE shipment (
-    shipment_id INT PRIMARY KEY,
+    shipment_id SERIAL PRIMARY KEY,
     auction_id INT NOT NULL UNIQUE,
     address VARCHAR(255) NOT NULL,
     shipment_status VARCHAR(20) NOT NULL DEFAULT 'Pending'

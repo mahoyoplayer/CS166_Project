@@ -1,6 +1,19 @@
-from screen import *
+
 import os
 import subprocess
+from esql_final import EmbeddedSQL
+
+from screen import *
+import buyer_screen as buy_scr
+import admin_screen as adm_scr
+import seller_screen as sell_scr
+
+dbname = "cs166_final" #sys.argv[1]
+dbport = 5432#sys.argv[2]
+user = "ryan" #sys.argv[3]
+password = "ryan123"
+
+DEBUG = True
 
 def clear_console() -> None:
     clear_command = "cls" if os.name == "nt" else "clear"
@@ -11,17 +24,31 @@ class App:
         self.running = True
         self.current_user = None
         self.current_role = None
+        self.esql = EmbeddedSQL(dbname, dbport, user, password)
+
         self.screen_map = {
             "welcome" : WelcomeScreen(self),
             "login" : LoginScreen(self),
-            "register" : RegisterScreen(self)
+            "register" : RegisterScreen(self),
+            "home" : HomeScreen(self),
+            "edit_profile": EditProfileScreen(self),
+            "debug": DebugScreen(self)
         }
         
+        
     def run(self):
-        # Initial Screen
-        curr_screen = "welcome"
-        while self.running:
+        if DEBUG:
+            curr_screen="home"
+            self.current_user="buyer1"
+            self.current_role="Buyer"
+        else:
+            curr_screen = "welcome"
+
+        while self.running and curr_screen != "exit":
             clear_console()
+            if curr_screen not in self.screen_map:
+                print(f"Error: unknown screen '{curr_screen}'")
+                return     
             curr_screen = self.screen_map[curr_screen].show()
         clear_console()
 
