@@ -32,15 +32,20 @@ class App:
             "register" : RegisterScreen(self),
             "home" : HomeScreen(self),
             "edit_profile": EditProfileScreen(self),
-            "debug": DebugScreen(self)
+            "debug": DebugScreen(self),
+
+            # Seller Screens
+            "create_item" : sell_scr.CreateItemScreen(self),
+            "end_auction" : sell_scr.EndAuctionScreen(self)
         }
         
         
     def run(self):
         if DEBUG:
-            curr_screen="home"
-            self.current_user="buyer1"
-            self.current_role="Buyer"
+            # Buyer account
+            curr_screen="create_item"
+            self.current_user="seller1"
+            self.current_role="Seller"
         else:
             curr_screen = "welcome"
 
