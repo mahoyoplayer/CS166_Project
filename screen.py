@@ -1,8 +1,67 @@
 import questionary
 import queries
+from decimal import Decimal, InvalidOperation
+
 """
 https://questionary.readthedocs.io/en/stable/pages/quickstart.html
 """
+
+def is_valid_price(value):
+            if value is None:
+                return False
+
+            value = value.strip()
+
+            try:
+                price = Decimal(value)
+            except InvalidOperation:
+                return False
+
+            # Reject NaN and Infinity
+            if not price.is_finite():
+                return False
+
+            # Must be positive
+            if price < Decimal("0"):
+                return False
+
+            exponent = price.as_tuple().exponent
+
+            # Makes Pylance happy
+            if not isinstance(exponent, int):
+                return False
+
+            # Must have at most 2 decimal places
+            if exponent < -2:
+                return False
+
+            # Must fit NUMERIC(10,2)
+            if price > Decimal("99999999.99"):
+                return False
+
+            return True
+
+def optional_text(value):
+            if value is None:
+                return None
+
+            value = value.strip()
+            return value if value else None
+
+def required_text(prompt):
+    while True:
+        value = questionary.text(prompt).ask()
+
+        if value is None:
+            return None
+
+        value = value.strip()
+
+        if value:
+            return value
+
+        questionary.print("This field is required.", style="bold")
+
 
 class Screen:
     def __init__(self, app):
@@ -124,6 +183,7 @@ class HomeScreen(Screen):
             "Browse Items" : "browse_items",
             "Search Auctions" : "search_auction",
             "Make Payments" : "make_payment",
+            "See Active Bids" : "active_bid",
             "Edit Profile" : "edit_profile",
         }
 
@@ -263,3 +323,199 @@ class MakePaymentScreen(Screen):
         questionary.press_any_key_to_continue().ask()
 
         return "home"
+    
+class SearchAuctionScreen(Screen):
+    def show(self):
+        curr_login = self.app.current_user
+
+        questionary.print("Explore Active Auctions:", style="bold")
+
+        search_term = questionary.text(
+            "Search item name, or enter -1 to cancel: "
+        ).ask()
+
+        if search_term is None:
+            return "home"
+
+        search_term = search_term.strip()
+
+        if search_term == "-1":
+            return "home"
+
+        if search_term == "":
+            questionary.print(
+                "\nSearch term cannot be blank.\n",
+                style="bold fg:red"
+            )
+            questionary.press_any_key_to_continue().ask()
+            return "home"
+
+        res = self.app.esql.execute_query(
+            queries.FIND_AUCTION_BY_ITEM_NAME,
+            (f"%{search_term}%", curr_login, curr_login)
+        )
+
+        if res.empty():
+            questionary.print(
+                "\nNo active auctions found for that item name.\n",
+                style="bold fg:red"
+            )
+            questionary.press_any_key_to_continue().ask()
+            return "home"
+
+        choice_dict = {}
+        choices = []
+
+        for auction_id, item_id, current_highest_bid, starting_price, item_name, category, seller_login in res:
+            choice_text = (
+                f"{item_name} ({category}) | "
+                f"Current Highest Bid: ${current_highest_bid} | "
+                f"Starting Price: ${starting_price}"
+            )
+
+            choices.append(choice_text)
+            choice_dict[choice_text] = (
+                auction_id,
+                item_id,
+                Decimal(str(current_highest_bid)),
+                Decimal(str(starting_price)),
+                item_name
+            )
+
+        choices.append("Return")
+
+        selected = questionary.select(
+            "Select an auction to bid on:",
+            choices=choices
+        ).ask()
+
+        if selected == "Return" or selected is None:
+            return "home"
+
+        auction_id, item_id, current_highest_bid, starting_price, item_name = choice_dict[selected]
+
+        item_res = self.app.esql.execute_query(
+            queries.GET_ITEM_INFO,
+            (item_id,)
+        )
+
+        if item_res.empty():
+            questionary.print(
+                "\nCould not find item information.\n",
+                style="bold fg:red"
+            )
+            questionary.press_any_key_to_continue().ask()
+            return "home"
+
+        (
+            item_id,
+            item_name,
+            category,
+            item_starting_price,
+            image_url,
+            item_condition,
+            description,
+            seller_login
+        ) = item_res[0]
+
+        def show_value(value):
+            if value is None or value == "":
+                return "N/A"
+            return value
+
+        print("\n" + "-" * 40)
+        questionary.print("Full Item Information", style="bold")
+        print(f"Item ID: {item_id}")
+        print(f"Name: {item_name}")
+        print(f"Category: {category}")
+        print(f"Starting Price: ${item_starting_price}")
+        print(f"Current Highest Bid: ${current_highest_bid}")
+        print(f"Seller: {seller_login}")
+        print(f"Condition: {show_value(item_condition)}")
+        print(f"Image URL: {show_value(image_url)}")
+        print(f"Description: {show_value(description)}")
+        print("-" * 40 + "\n")
+
+        min_bid = max(current_highest_bid, starting_price)
+
+        while True:
+            bid_amount_input = questionary.text(
+                f"Enter bid amount greater than ${min_bid}, or -1 to cancel: "
+            ).ask()
+
+            if bid_amount_input is None:
+                return "home"
+
+            bid_amount_input = bid_amount_input.strip()
+
+            if bid_amount_input == "-1":
+                return "home"
+
+            if is_valid_price(bid_amount_input):
+                bid_amount = Decimal(bid_amount_input)
+
+                if bid_amount > min_bid:
+                    break
+
+            questionary.print(
+                f"Invalid bid. Bid must be greater than ${min_bid}.",
+                style="bold fg:red"
+            )
+
+        confirm = questionary.confirm(
+            f"Place bid of ${bid_amount} on '{item_name}'?"
+        ).ask()
+
+        if not confirm:
+            return "home"
+
+        self.app.esql.execute_update(
+            queries.INSERT_BID,
+            (auction_id, curr_login, bid_amount)
+        )
+
+        self.app.esql.execute_update(
+            queries.UPDATE_CURR_HIGHEST_BID,
+            (bid_amount, auction_id)
+        )
+
+        questionary.print(
+            "\nBid successfully placed!\n",
+            style="bold fg:green"
+        )
+        questionary.press_any_key_to_continue().ask()
+
+        return "home"
+    
+class ActiveBidsScreen(Screen):
+    def show(self):
+        questionary.print("Active Winning Bids:", style="bold")
+
+        res = self.app.esql.execute_query(
+            queries.GET_ACTIVE_BIDS,
+            (self.app.current_user,)
+        )
+        
+        # Check for no winning bids
+        if res.empty():
+            questionary.print(
+                "\nYou are not currently winning any active auctions.\n",
+                style="bold fg:red"
+            )
+            questionary.press_any_key_to_continue().ask()
+            return "home"
+        
+        # User is winning in at least one auction, so output them.
+        print()
+        for auction_id, item_name, category, current_highest_bid in res:
+            print(
+                f"Auction ID: {auction_id} | "
+                f"Item: {item_name} | "
+                f"Category: {category} | "
+                f"Your Bid: ${current_highest_bid}"
+            )
+        print()
+        questionary.press_any_key_to_continue().ask()
+        return "home"
+
+    

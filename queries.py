@@ -1,3 +1,58 @@
+# Query for buyers to see all item names, auctions, price for auctions they are winning.
+GET_ACTIVE_BIDS = """
+SELECT a.auction_id, i.item_name, i.category, a.current_highest_bid
+FROM auction a
+JOIN item i ON i.item_id = a.item_id
+JOIN bid b ON b.auction_id = a.auction_id
+WHERE a.auction_status = 'Active'
+  AND b.buyer_login = %s
+  AND b.bid_amount = a.current_highest_bid
+ORDER BY i.item_name;
+"""
+
+
+# Queries for buyers to find auctions that they do not own and make bids.
+FIND_AUCTION_BY_ITEM_NAME = """
+SELECT 
+    a.auction_id,
+    i.item_id,
+    a.current_highest_bid,
+    i.starting_price,
+    i.item_name,
+    i.category,
+    a.seller_login
+FROM auction a
+JOIN item i ON i.item_id = a.item_id
+WHERE i.item_name LIKE %s
+  AND a.seller_login <> %s
+  AND a.auction_status = 'Active'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM bid b
+      WHERE b.auction_id = a.auction_id
+        AND b.buyer_login = %s
+        AND b.bid_amount = a.current_highest_bid
+  )
+ORDER BY i.item_name
+LIMIT 6;
+"""
+
+INSERT_BID = """
+INSERT INTO bid (
+    auction_id,
+    buyer_login,
+    bid_amount
+)
+VALUES (%s, %s, %s);
+"""
+
+UPDATE_CURR_HIGHEST_BID = """
+UPDATE auction
+SET current_highest_bid = %s
+WHERE auction_id = %s;
+"""
+
+
 # Queries for buyers to view and make payments that are pending
 GET_PENDING_PAYMENTS = """
 SELECT p.payment_id, a.auction_id, i.item_name, p.amount
@@ -207,7 +262,15 @@ VALUES (%s, %s, %s);
 
 # For printing out item information
 GET_ITEM_INFO = """
-SELECT *
+SELECT 
+    item_id,
+    item_name,
+    category,
+    starting_price,
+    image_url,
+    item_condition,
+    description,
+    seller_login
 FROM item
 WHERE item_id = %s;
 """
@@ -295,20 +358,6 @@ INSERT INTO auction (
 )
 VALUES (%s, %s);
 """
-
-
-INSERT_BID = """
-INSERT INTO bid (
-    auction_id,
-    buyer_login,
-    bid_amount
-)
-VALUES (%s, %s, %s)
-RETURNING bid_id;
-"""
-
-
-
 
 
 INSERT_SHIPMENT = """
