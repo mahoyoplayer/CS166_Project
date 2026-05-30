@@ -1,3 +1,20 @@
+# Query for browsing recent items listed on auction.
+BROWSE_ITEMS = """
+SELECT 
+    a.auction_id,
+    i.item_id,
+    i.item_name,
+    i.category,
+    i.starting_price,
+    a.current_highest_bid,
+    a.seller_login
+FROM auction a
+JOIN item i ON i.item_id = a.item_id
+WHERE a.auction_status = 'Active' AND a.seller_login <> %s
+ORDER BY a.auction_id desc
+LIMIT 10;
+"""
+
 # Query for buyers to see all item names, auctions, price for auctions they are winning.
 GET_ACTIVE_BIDS = """
 SELECT a.auction_id, i.item_name, i.category, a.current_highest_bid
@@ -9,7 +26,6 @@ WHERE a.auction_status = 'Active'
   AND b.bid_amount = a.current_highest_bid
 ORDER BY i.item_name;
 """
-
 
 # Queries for buyers to find auctions that they do not own and make bids.
 FIND_AUCTION_BY_ITEM_NAME = """

@@ -518,4 +518,36 @@ class ActiveBidsScreen(Screen):
         questionary.press_any_key_to_continue().ask()
         return "home"
 
+class BrowseItemsScreen(Screen):
+    def show(self):
+        questionary.print("Recently Posted Items:", style="bold")
+
+        res = self.app.esql.execute_query(
+            queries.BROWSE_ITEMS,
+            (self.app.current_user,)
+        )
+
+        if res.empty():
+            questionary.print(
+                "\nThere are no active auction items right now.\n",
+                style="bold fg:red"
+            )
+            questionary.press_any_key_to_continue().ask()
+            return "home"
+
+        print()
+
+        for auction_id, item_id, item_name, category, starting_price, current_highest_bid, seller_login in res:
+            print(
+                f"Auction ID: {auction_id} | "
+                f"Item: {item_name} | "
+                f"Category: {category} | "
+                f"Starting: ${starting_price} | "
+                f"Current Bid: ${current_highest_bid}"
+            )
+
+        print()
+
+        questionary.press_any_key_to_continue().ask()
+        return "home"
     
