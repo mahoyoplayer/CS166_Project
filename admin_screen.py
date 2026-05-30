@@ -3,6 +3,83 @@ import questionary
 import queries
 
 
+class RemoveItemScreen(Screen):
+    def show(self):
+        questionary.print("Remove Item:", style="bold")
+
+        item_id_input = questionary.text(
+            "Enter item ID to remove, or -1 to cancel: "
+        ).ask()
+
+        if item_id_input is None:
+            return "admin_dashboard"
+
+        item_id_input = item_id_input.strip()
+
+        if item_id_input == "-1":
+            return "admin_dashboard"
+
+        if not item_id_input.isdigit():
+            questionary.print(
+                "\nInvalid item ID. Please enter a number.\n",
+                style="bold fg:red"
+            )
+            questionary.press_any_key_to_continue().ask()
+            return "admin_dashboard"
+
+        item_id = int(item_id_input)
+
+        res = self.app.esql.execute_query(
+            queries.GET_ITEM_DELETE_INFO,
+            (item_id,)
+        )
+
+        if res.empty():
+            questionary.print(
+                f"\nNo item found with ID {item_id}.\n",
+                style="bold fg:red"
+            )
+            questionary.press_any_key_to_continue().ask()
+            return "admin_dashboard"
+
+        item_id, item_name, category, seller_login, has_auction = res[0]
+
+        if has_auction:
+            questionary.print(
+                "\nThis item cannot be deleted because it has auction history.\n",
+                style="bold fg:red"
+            )
+            questionary.press_any_key_to_continue().ask()
+            return "admin_dashboard"
+
+        questionary.print(
+            f"\nItem found:\n"
+            f"Item Name: {item_name}\n"
+            f"Item Category: {category}\n"
+            f"Item Seller: {seller_login}\n",
+            style="bold"
+        )
+
+        confirm = questionary.confirm(
+            f"Are you sure you want to permanently delete item {item_id}?"
+        ).ask()
+
+        if not confirm:
+            return "admin_dashboard"
+
+        self.app.esql.execute_update(
+            queries.DELETE_ITEM,
+            (item_id,)
+        )
+
+        questionary.print(
+            "\nItem successfully removed.\n",
+            style="bold fg:green"
+        )
+        questionary.press_any_key_to_continue().ask()
+
+        return "admin_dashboard"
+    
 class ViewAnalyticsScreen(Screen):
     def show(self):
         questionary.print(
@@ -88,6 +165,7 @@ class AdminDashboardScreen(Screen):
 
         choices = {
             "Delete User That are not Buyers": "create_item",
+            "Remove Items" : "remove_item", 
             "Change User Roles" : "change_user_role",
             "View Analytics" : "view_analytics",
             "Return": "home"

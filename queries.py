@@ -1,3 +1,24 @@
+# Queries for admin deleting item
+GET_ITEM_DELETE_INFO = """
+SELECT 
+    i.item_id,
+    i.item_name,
+    i.category,
+    i.seller_login,
+    EXISTS (
+        SELECT 1
+        FROM auction a
+        WHERE a.item_id = i.item_id
+    ) AS has_auction
+FROM item i
+WHERE i.item_id = %s;
+"""
+
+DELETE_ITEM = """
+DELETE FROM item
+WHERE item_id = %s;
+"""
+
 # Queries for analytics in admin report
 GET_USER_COUNT = """
 SELECT COUNT(*)

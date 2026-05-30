@@ -44,7 +44,8 @@ class App:
             # Admin Screens
             "admin_dashboard" : adm_scr.AdminDashboardScreen(self),
             "change_user_role" : adm_scr.ChangeRoleScreen(self),
-            "view_analytics" : adm_scr.ViewAnalyticsScreen(self)
+            "view_analytics" : adm_scr.ViewAnalyticsScreen(self),
+            "remove_item" : adm_scr.RemoveItemScreen(self)
         }
         
         
@@ -53,7 +54,7 @@ class App:
             # Buyer account
             curr_screen="admin_dashboard"
             self.current_user="seller1"
-            self.current_role="admin"
+            self.current_role="Seller"
         else:
             curr_screen = "welcome"
 
