@@ -35,17 +35,25 @@ class App:
             "debug": DebugScreen(self),
 
             # Seller Screens
+            "sell_dashboard" : sell_scr.SellerDashboardScreen(self),
             "create_item" : sell_scr.CreateItemScreen(self),
-            "end_auction" : sell_scr.EndAuctionScreen(self)
+            "end_auction" : sell_scr.EndAuctionScreen(self),
+            "update_item" : sell_scr.UpdateItemScreen(self),
+            "start_auction" : sell_scr.StartAuctionScreen(self),
+
+            # Admin Screens
+            "admin_dashboard" : adm_scr.AdminDashboardScreen(self),
+            "change_user_role" : adm_scr.ChangeRoleScreen(self),
+            "view_analytics" : adm_scr.ViewAnalyticsScreen(self)
         }
         
         
     def run(self):
         if DEBUG:
             # Buyer account
-            curr_screen="create_item"
+            curr_screen="admin_dashboard"
             self.current_user="seller1"
-            self.current_role="Seller"
+            self.current_role="admin"
         else:
             curr_screen = "welcome"
 

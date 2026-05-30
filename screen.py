@@ -120,20 +120,26 @@ class HomeScreen(Screen):
     def show(self):
         questionary.print(f"Welcome, {self.app.current_user}.", style="bold")
 
-        default_choices = {
+        choices = {
             "Browse Items" : "browse_items",
             "Search Auctions" : "search_auction",
             "Edit Profile" : "edit_profile",
-            "Exit" : "exit"
         }
 
-        choices = default_choices
+        role = self.app.current_role
+        if role == "Seller":
+            choices["Seller Dashboard"] = "sell_dashboard"
+
+        if role == "Admin":
+            choices["Admin Dashboard"] = "admin_dashboard"
+        
+        choices["Exit"] = "exit"
+
         res = questionary.select(
             "Home",
             choices=list(choices.keys())
         ).ask()
 
-        # Returns either "login" or "register"
         return choices[res]
 
 class EditProfileScreen(Screen):

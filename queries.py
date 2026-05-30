@@ -1,3 +1,131 @@
+# Queries for analytics in admin report
+GET_USER_COUNT = """
+SELECT COUNT(*)
+FROM users;
+"""
+
+GET_NUM_BIDS_TODAY = """
+SELECT COUNT(*)
+FROM bid
+WHERE bid_timestamp::date = CURRENT_DATE;
+"""
+
+GET_NUM_AUCTION = """
+SELECT COUNT(*)
+FROM auction;
+"""
+
+GET_NUM_AUCTION_ACTIVE = """
+SELECT COUNT(*)
+FROM auction
+WHERE auction_status = 'Active';
+"""
+
+GET_MOST_BIDDED_AUCTIONS = """
+SELECT 
+    a.auction_id,
+    i.item_name,
+    COUNT(b.bid_id) AS num_bids
+FROM auction a
+JOIN item i ON i.item_id = a.item_id
+LEFT JOIN bid b ON b.auction_id = a.auction_id
+GROUP BY a.auction_id, i.item_name
+ORDER BY num_bids DESC
+LIMIT 5;
+"""
+
+GET_TOP_CATEGORIES_BY_BIDS = """
+SELECT 
+    i.category,
+    COUNT(b.bid_id) AS num_bids
+FROM item i
+JOIN auction a ON a.item_id = i.item_id
+JOIN bid b ON b.auction_id = a.auction_id
+GROUP BY i.category
+ORDER BY num_bids DESC
+LIMIT 5;
+"""
+
+GET_TOP_SELLERS_BY_AUCTIONS = """
+SELECT seller_login, COUNT(*) AS num_auctions
+FROM auction
+GROUP BY seller_login
+ORDER BY num_auctions DESC
+LIMIT 5;
+"""
+
+# For use in admin changing role screen.
+SET_USER_ROLE = """
+UPDATE users
+SET role = %s
+WHERE login = %s;
+"""
+
+GET_USER_BY_LOGIN = """
+SELECT login, role
+FROM users
+WHERE login = %s;
+"""
+
+GET_USER_ROLE = """
+SELECT role
+FROM users
+WHERE login = %s AND password = %s;
+"""
+
+# Get all items from seller that have never been in an auction
+GET_POSS_ITEMS = """
+SELECT i.item_id, i.item_name
+FROM item i
+WHERE i.seller_login = %s
+  AND NOT EXISTS (
+      SELECT 1
+      FROM auction a
+      WHERE a.item_id = i.item_id
+  )
+ORDER BY i.item_id;
+"""
+
+# Get all items from seller that are not in auction or have an 'Active' auction status
+GET_POSS_ITEMS_ACTIVE = """
+SELECT DISTINCT i.item_id, i.item_name
+FROM item i
+LEFT JOIN auction a ON a.item_id = i.item_id
+WHERE i.seller_login = %s
+  AND (
+      a.item_id IS NULL
+      OR a.auction_status = 'Active'
+  )
+ORDER BY i.item_id;
+"""
+
+# Update specific item
+UPDATE_ITEM = """
+UPDATE item
+SET 
+    item_name = %s,
+    category = %s,
+    starting_price = %s,
+    image_url = %s,
+    item_condition = %s,
+    description = %s
+WHERE item_id = %s
+  AND seller_login = %s;
+"""
+
+GET_ITEM_BY_ID_FOR_SELLER = """
+SELECT 
+    item_name,
+    category,
+    starting_price,
+    image_url,
+    item_condition,
+    description
+FROM item
+WHERE item_id = %s
+  AND seller_login = %s;
+"""
+
 # For seller to find their current auctions
 GET_CURRENT_AUCTIONS = """
 SELECT 
@@ -100,11 +228,7 @@ Work on everything above
 
 
 
-GET_USER_ROLE = """
-SELECT role
-FROM users
-WHERE login = %s AND password = %s;
-"""
+
 
 CHECK_LOGIN_EXISTS = """
 SELECT login
@@ -138,17 +262,12 @@ INSERT INTO item (
 VALUES (%s, %s, %s, %s, %s, %s, %s)
 """
 
-UPDATE_ITEM = """
-
-"""
-
 INSERT_AUCTION = """
 INSERT INTO auction (
     item_id,
     seller_login
 )
-VALUES (%s, %s)
-RETURNING auction_id;
+VALUES (%s, %s);
 """
 
 

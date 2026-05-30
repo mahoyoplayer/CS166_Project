@@ -3,9 +3,7 @@ import questionary
 import queries
 from decimal import Decimal, InvalidOperation
 
-class CreateItemScreen(Screen):
-    def show(self):
-        def is_valid_price(value):
+def is_valid_price(value):
             if value is None:
                 return False
 
@@ -39,40 +37,204 @@ class CreateItemScreen(Screen):
                 return False
 
             return True
-        
-        def optional_text(value):
+
+def optional_text(value):
             if value is None:
                 return None
 
             value = value.strip()
             return value if value else None
 
-        def required_text(prompt):
-            while True:
-                value = questionary.text(prompt).ask()
+def required_text(prompt):
+    while True:
+        value = questionary.text(prompt).ask()
 
-                if value is None:
-                    return None
+        if value is None:
+            return None
 
-                value = value.strip()
+        value = value.strip()
 
-                if value:
-                    return value
+        if value:
+            return value
 
-                questionary.print("This field is required.", style="bold")
+        questionary.print("This field is required.", style="bold")
 
-        questionary.print("Create Item:", style="bold")
+class SellerDashboardScreen(Screen):
+    def show(self):
+        questionary.print(
+            f"Welcome, {self.app.current_user}.",
+            style="bold"
+        )
 
-        item_name = required_text("New Item Name: ")
+        choices = {
+            "Create Item": "create_item",
+            "Update Item": "update_item",
+            "Start Auction": "start_auction",
+            "End Auction": "end_auction",
+            "Return": "home"
+        }
+
+        res = questionary.select(
+            "Seller Dashboard",
+            choices=list(choices.keys())
+        ).ask()
+
+        return choices[res]
+    
+class StartAuctionScreen(Screen):
+    def show(self):
+        seller_login = self.app.current_user
+
+        questionary.print("Start Auction:", style="bold")
+
+        res = self.app.esql.execute_query(
+            queries.GET_POSS_ITEMS,
+            (seller_login,)
+        )
+
+        if res.empty():
+            questionary.print(
+                "\nYou have no available items to start an auction.\n",
+                style="bold fg:red"
+            )
+            questionary.press_any_key_to_continue().ask()
+            return "sell_dashboard"
+
+        choice_dict = {}
+        choices = []
+
+        for item_id, item_name in res:
+            choice_text = f"Item ID: {item_id} | Item Name: {item_name}"
+            choices.append(choice_text)
+            choice_dict[choice_text] = item_id
+
+        choices.append("Return")
+
+        selected = questionary.select(
+            "Select an item to start an auction:",
+            choices=choices
+        ).ask()
+
+        if selected == "Return" or selected is None:
+            return "sell_dashboard"
+
+        item_id = choice_dict[selected]
+
+        confirm = questionary.confirm(
+            f"Start auction for item {item_id}?"
+        ).ask()
+
+        if not confirm:
+            return "sell_dashboard"
+
+        self.app.esql.execute_update(
+            queries.INSERT_AUCTION,
+            (item_id, seller_login)
+        )
+
+        questionary.print(
+            "\nAuction successfully started!\n",
+            style="bold fg:green"
+        )
+        questionary.press_any_key_to_continue().ask()
+
+        return "sell_dashboard"
+
+class UpdateItemScreen(Screen):
+    def show(self):
+        seller_login = self.app.current_user
+
+        questionary.print("Update Item:", style="bold")
+
+        # Get all items from current seller
+        res = self.app.esql.execute_query(
+            queries.GET_POSS_ITEMS_ACTIVE,
+            (seller_login,)
+        )
+
+        if res.empty():
+            questionary.print(
+                "\nYou have no items to update.\n",
+                style="bold fg:red"
+            )
+            questionary.press_any_key_to_continue().ask()
+            return "sell_dashboard"
+
+        choice_dict = {}
+        choices = []
+
+        for item_id, item_name in res:
+            choice_text = f"Item ID: {item_id} | Item Name: {item_name}"
+            choices.append(choice_text)
+            choice_dict[choice_text] = item_id
+
+        choices.append("Return")
+
+        selected = questionary.select(
+            "Select an item to update:",
+            choices=choices
+        ).ask()
+
+        if selected == "Return" or selected is None:
+            return "sell_dashboard"
+
+        item_id = choice_dict[selected]
+
+        # Load old item values
+        item_res = self.app.esql.execute_query(
+            queries.GET_ITEM_BY_ID_FOR_SELLER,
+            (item_id, seller_login)
+        )
+
+        if item_res.empty():
+            questionary.print(
+                "\nItem not found or you do not own this item.\n",
+                style="bold fg:red"
+            )
+            questionary.press_any_key_to_continue().ask()
+            return "sell_dashboard"
+
+        old_item_name, old_category, old_starting_price, old_image_url, old_item_condition, old_description = item_res[0]
+
+        # Ask for new values, with current values as defaults
+        item_name = questionary.text(
+            "New Item Name:",
+            default=str(old_item_name)
+        ).ask()
+
         if item_name is None:
-            return "home"
+            return "sell_dashboard"
 
-        category = required_text("New Item Category: ")
+        item_name = item_name.strip()
+
+        if item_name == "":
+            questionary.print("\nItem name cannot be blank.\n", style="bold fg:red")
+            questionary.press_any_key_to_continue().ask()
+            return "sell_dashboard"
+
+        category = questionary.text(
+            "New Item Category:",
+            default=str(old_category)
+        ).ask()
+
         if category is None:
-            return "home"
+            return "sell_dashboard"
+
+        category = category.strip()
+
+        if category == "":
+            questionary.print("\nCategory cannot be blank.\n", style="bold fg:red")
+            questionary.press_any_key_to_continue().ask()
+            return "sell_dashboard"
 
         while True:
-            starting_price_input = questionary.text("New Item Starting Price: ").ask()
+            starting_price_input = questionary.text(
+                "New Item Starting Price:",
+                default=str(old_starting_price)
+            ).ask()
+
+            if starting_price_input is None:
+                return "sell_dashboard"
 
             if is_valid_price(starting_price_input):
                 starting_price = Decimal(starting_price_input)
@@ -84,15 +246,98 @@ class CreateItemScreen(Screen):
             )
 
         image_url = optional_text(
-            questionary.text("New Item Image Url (Optional, Leave blank to skip): ").ask()
+            questionary.text(
+                "New Item Image Url (Optional, Leave blank to skip):",
+                default="" if old_image_url is None else str(old_image_url)
+            ).ask()
         )
 
         item_condition = optional_text(
-            questionary.text("New Item Condition (Optional, Leave blank to skip): ").ask()
+            questionary.text(
+                "New Item Condition (Optional, Leave blank to skip):",
+                default="" if old_item_condition is None else str(old_item_condition)
+            ).ask()
         )
 
         description = optional_text(
-            questionary.text("New Item Description (Optional, Leave blank to skip): ").ask()
+            questionary.text(
+                "New Item Description (Optional, Leave blank to skip):",
+                default="" if old_description is None else str(old_description)
+            ).ask()
+        )
+
+        confirm = questionary.confirm(
+            f"Are you sure you want to update item {item_id}?"
+        ).ask()
+
+        if not confirm:
+            return "sell_dashboard"
+
+        self.app.esql.execute_update(
+            queries.UPDATE_ITEM,
+            (
+                item_name,
+                category,
+                starting_price,
+                image_url,
+                item_condition,
+                description,
+                item_id,
+                seller_login
+            )
+        )
+
+        questionary.print(
+            "\nItem successfully updated!\n",
+            style="bold fg:green"
+        )
+        questionary.press_any_key_to_continue().ask()
+
+        return "sell_dashboard"
+
+class CreateItemScreen(Screen):
+    def show(self):
+        questionary.print("Create Item:", style="bold")
+
+        item_name = required_text("New Item Name: ")
+        if item_name is None:
+            return "sell_dashboard"
+
+        category = required_text("New Item Category: ")
+        if category is None:
+            return "sell_dashboard"
+
+        while True:
+            starting_price_input = questionary.text("New Item Starting Price: ").ask()
+
+            if starting_price_input is None:
+                return "sell_dashboard"
+
+            if is_valid_price(starting_price_input):
+                starting_price = Decimal(starting_price_input.strip())
+                break
+
+            questionary.print(
+                "Invalid starting price. Enter a non-negative number with at most 2 decimals.",
+                style="bold fg:red"
+            )
+
+        image_url = optional_text(
+            questionary.text(
+                "New Item Image Url (Optional, Leave blank to skip): "
+            ).ask()
+        )
+
+        item_condition = optional_text(
+            questionary.text(
+                "New Item Condition (Optional, Leave blank to skip): "
+            ).ask()
+        )
+
+        description = optional_text(
+            questionary.text(
+                "New Item Description (Optional, Leave blank to skip): "
+            ).ask()
         )
 
         self.app.esql.execute_update(
@@ -114,11 +359,8 @@ class CreateItemScreen(Screen):
         )
         questionary.press_any_key_to_continue().ask()
 
-        return "home"
-
-class UpdateItemScreen(Screen):
-    pass  
-
+        return "sell_dashboard"
+    
 class EndAuctionScreen(Screen):
     def handle_end_auction(self, auction_id):
         res = self.app.esql.execute_query(
@@ -161,7 +403,7 @@ class EndAuctionScreen(Screen):
                 style="bold fg:red"
             )
             questionary.press_any_key_to_continue().ask()
-            return "home"
+            return "sell_dashboard"
 
         choice_dict = {}
         choices = []
@@ -179,7 +421,7 @@ class EndAuctionScreen(Screen):
         ).ask()
 
         if selected == "Return" or selected is None:
-            return "home"
+            return "sell_dashboard"
 
         auction_id = choice_dict[selected]
 
@@ -188,7 +430,7 @@ class EndAuctionScreen(Screen):
         ).ask()
 
         if not confirm:
-            return "home"
+            return "sell_dashboard"
 
         self.handle_end_auction(auction_id)
 
@@ -198,4 +440,4 @@ class EndAuctionScreen(Screen):
         )
         questionary.press_any_key_to_continue().ask()
 
-        return "home"
+        return "sell_dashboard"
