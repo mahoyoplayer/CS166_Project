@@ -27,12 +27,14 @@ class App:
         self.esql = EmbeddedSQL(dbname, dbport, user, password)
 
         self.screen_map = {
+            # General Screens
             "welcome" : WelcomeScreen(self),
             "login" : LoginScreen(self),
             "register" : RegisterScreen(self),
             "home" : HomeScreen(self),
             "edit_profile": EditProfileScreen(self),
             "debug": DebugScreen(self),
+            "make_payment" : MakePaymentScreen(self),
 
             # Seller Screens
             "sell_dashboard" : sell_scr.SellerDashboardScreen(self),
@@ -52,9 +54,9 @@ class App:
     def run(self):
         if DEBUG:
             # Buyer account
-            curr_screen="admin_dashboard"
-            self.current_user="seller1"
-            self.current_role="Seller"
+            curr_screen="home"
+            self.current_user="buyer2"
+            self.current_role="Buyer"
         else:
             curr_screen = "welcome"
 

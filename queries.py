@@ -1,3 +1,21 @@
+# Queries for buyers to view and make payments that are pending
+GET_PENDING_PAYMENTS = """
+SELECT p.payment_id, a.auction_id, i.item_name, p.amount
+FROM payment p
+JOIN auction a ON a.auction_id = p.auction_id
+JOIN item i ON i.item_id = a.item_id
+WHERE p.payment_status = 'Pending' AND p.buyer_login = %s
+ORDER BY p.payment_id;
+"""
+
+SET_PAYMENT_STATUS_COMPLETED = """
+UPDATE payment
+SET payment_status = 'Completed'
+WHERE payment_id = %s;
+"""
+
+
+
 # Queries for admin deleting item
 GET_ITEM_DELETE_INFO = """
 SELECT 
@@ -221,21 +239,8 @@ WHERE i.category = %s
 LIMIT 4;
 """
 
-# For buyers to view payments
-GET_PENDING_PAYMENTS = """
-SELECT p.payment_id, p.auction_id, i.item_name
-FROM payment p
-JOIN auction a ON a.auction_id = p.auction_id
-JOIN item i ON i.item_id = a.item_id
-WHERE p.payment_status = 'Pending' AND buyer_login = %s;
-"""
 
-# For buyer to finish payment
-SET_PAYMENT_STATUS_COMPLETED = """
-UPDATE payment
-SET payment_status = 'Completed'
-WHERE payment_id = %s;
-"""
+
 
 
 

@@ -123,6 +123,7 @@ class HomeScreen(Screen):
         choices = {
             "Browse Items" : "browse_items",
             "Search Auctions" : "search_auction",
+            "Make Payments" : "make_payment",
             "Edit Profile" : "edit_profile",
         }
 
@@ -201,3 +202,64 @@ class DebugScreen(Screen):
         
         return ""
 
+class MakePaymentScreen(Screen):
+    def show(self):
+        questionary.print("Make Payment:", style="bold")
+
+        res = self.app.esql.execute_query(
+            queries.GET_PENDING_PAYMENTS,
+            (self.app.current_user,)
+        )
+
+        if res.empty():
+            questionary.print(
+                "\nYou have no pending payments.\n",
+                style="bold fg:red"
+            )
+            questionary.press_any_key_to_continue().ask()
+            return "home"
+
+        choice_dict = {}
+        choices = []
+
+        for payment_id, auction_id, item_name, amount in res:
+            choice_text = (
+                f"Payment ID: {payment_id} | "
+                f"Auction ID: {auction_id} | "
+                f"Item: {item_name} | "
+                f"Amount: ${amount}"
+            )
+            choices.append(choice_text)
+            choice_dict[choice_text] = payment_id
+
+        choices.append("Return")
+
+        selected = questionary.select(
+            "Select a payment to complete:",
+            choices=choices
+        ).ask()
+
+        if selected == "Return" or selected is None:
+            return "home"
+
+        payment_id = choice_dict[selected]
+
+        confirm = questionary.confirm(
+            f"Pay for payment ID {payment_id} (${amount})?"
+        ).ask()
+
+        if not confirm:
+            return "home"
+
+        self.app.esql.execute_update(
+            queries.SET_PAYMENT_STATUS_COMPLETED,
+            (payment_id,)
+        )
+
+        questionary.print(
+            "\nPayment successfully completed!\n",
+            style="bold fg:green"
+        )
+        questionary.press_any_key_to_continue().ask()
+
+        return "home"
