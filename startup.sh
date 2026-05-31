@@ -79,6 +79,13 @@ if [ ! -f "data_setup/create_tables.sql" ]; then
 fi
 $PSQL_CMD -d "$DB_NAME" -v ON_ERROR_STOP=1 -f data_setup/create_tables.sql
 
+echo "Creating indexes..."
+if [ ! -f "data_setup/create_indexes.sql" ]; then
+    echo "Missing data_setup/create_indexes.sql"
+    exit 1
+fi
+$PSQL_CMD -d "$DB_NAME" -v ON_ERROR_STOP=1 -f data_setup/create_indexes.sql
+
 #echo "Generating fake data..."
 #if [ ! -f "data_setup/generate_fake_data.py" ]; then
 #    echo "Missing data_setup/generate_fake_data.py"
