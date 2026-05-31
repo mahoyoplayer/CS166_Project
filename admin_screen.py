@@ -247,3 +247,4 @@ class ChangeRoleScreen(Screen):
         questionary.press_any_key_to_continue().ask()
 
         return "admin_dashboard"
+    
