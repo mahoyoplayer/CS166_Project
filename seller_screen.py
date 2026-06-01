@@ -71,6 +71,7 @@ class SellerDashboardScreen(Screen):
             "Update Item": "update_item",
             "Start Auction": "start_auction",
             "End Auction": "end_auction",
+            "Ship Sold Items" : "ship_items",
             "Return": "home"
         }
 
@@ -436,6 +437,79 @@ class EndAuctionScreen(Screen):
 
         questionary.print(
             "\nAuction succesfully closed .\n",
+            style="bold fg:green"
+        )
+        questionary.press_any_key_to_continue().ask()
+
+        return "sell_dashboard"
+    
+class ShipItemsScreen(Screen):
+    def show(self):
+        questionary.print("Ship Sold Items:", style="bold")
+
+        res = self.app.esql.execute_query(
+            queries.FIND_SHIPMENTS_PENDING,
+            (self.app.current_user,)
+        )
+
+        if res.empty():
+            questionary.print(
+                "\nYou have no items that were recently bought by others to ship.\n",
+                style="bold fg:red"
+            )
+            questionary.press_any_key_to_continue().ask()
+            return "sell_dashboard"
+
+        choice_dict = {}
+        choices = []
+
+        for shipment_id, item_name in res:
+            choice_text = (
+                f"Shipment ID: {shipment_id} | "
+                f"Item: {item_name}"
+            )
+
+            choices.append(choice_text)
+            choice_dict[choice_text] = shipment_id
+
+        choices.append("Return")
+
+        selected = questionary.select(
+            "Select an item to ship:",
+            choices=choices
+        ).ask()
+
+        if selected == "Return" or selected is None:
+            return "sell_dashboard"
+
+        shipment_id = choice_dict[selected]
+
+        tracking_number = questionary.text(
+            "Enter tracking number, or leave blank if unavailable: "
+        ).ask()
+
+        if tracking_number is None:
+            return "sell_dashboard"
+
+        tracking_number = tracking_number.strip()
+
+        if tracking_number == "":
+            tracking_number = None
+
+        confirm = questionary.confirm(
+            f"Mark shipment {shipment_id} as shipped?"
+        ).ask()
+
+        if not confirm:
+            return "sell_dashboard"
+
+        self.app.esql.execute_update(
+            queries.UPDATE_SHIPMENT,
+            (tracking_number, shipment_id)
+        )
+
+        questionary.print(
+            "\nShipment marked as shipped!\n",
             style="bold fg:green"
         )
         questionary.press_any_key_to_continue().ask()

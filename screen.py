@@ -184,6 +184,7 @@ class HomeScreen(Screen):
             "See Active Bids" : "active_bid",
             "See Won Auctions" : "won_auction",
             "Make Payments" : "make_payment",
+            "See Ongoing Item Shipments" : "confirm_delivery",
             "Edit Profile" : "edit_profile",
         }
 
@@ -614,3 +615,68 @@ class WonAuctionsScreen(Screen):
 
         questionary.press_any_key_to_continue().ask()
         return "home"
+    
+class ConfirmDeliveryScreen(Screen):
+    def show(self):
+        questionary.print("Confirm Delivery:", style="bold")
+
+        res = self.app.esql.execute_query(
+            queries.FIND_SHIPMENTS_ACTIVE,
+            (self.app.current_user,)
+        )
+
+        if res.empty():
+            questionary.print(
+                "\nThere are no packages currently being shipped to you.\n",
+                style="bold fg:red"
+            )
+            questionary.press_any_key_to_continue().ask()
+            return "home"
+
+        choice_dict = {}
+        choices = []
+
+        for shipment_id, item_name, tracking_number in res:
+            tracking = tracking_number if tracking_number is not None else "N/A"
+
+            choice_text = (
+                f"Shipment ID: {shipment_id} | "
+                f"Item: {item_name} | "
+                f"Tracking: {tracking}"
+            )
+
+            choices.append(choice_text)
+            choice_dict[choice_text] = shipment_id
+
+        choices.append("Return")
+
+        selected = questionary.select(
+            "Select a shipment to mark as delivered:",
+            choices=choices
+        ).ask()
+
+        if selected == "Return" or selected is None:
+            return "home"
+
+        shipment_id = choice_dict[selected]
+
+        confirm = questionary.confirm(
+            f"Mark shipment {shipment_id} as delivered?"
+        ).ask()
+
+        if not confirm:
+            return "home"
+
+        self.app.esql.execute_update(
+            queries.SET_SHIPMENT_DELIVERED,
+            (shipment_id,)
+        )
+
+        questionary.print(
+            "\nShipment marked as delivered! Thank you for your cooperation!\n",
+            style="bold fg:green"
+        )
+        questionary.press_any_key_to_continue().ask()
+
+        return "home"
+    

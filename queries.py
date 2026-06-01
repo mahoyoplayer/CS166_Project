@@ -1,6 +1,33 @@
+# Query for sellers to ship their pending shipments.
+FIND_SHIPMENTS_PENDING = """
+SELECT s.shipment_id, i.item_name
+FROM shipment s
+JOIN auction a ON a.auction_id = s.auction_id
+JOIN item i ON i.item_id = a.item_id
+WHERE s.shipment_status = 'Pending' AND a.seller_login = %s;
+"""
+
+# For sellers to be able to update their shipments (status + tracking no)
+UPDATE_SHIPMENT = """
+UPDATE shipment
+SET tracking_number = %s, shipment_status = 'Shipped'
+WHERE shipment_id = %s;
+"""
+
+
 # Query for buyers to see their shipped shipments to mark as delivered.
 FIND_SHIPMENTS_ACTIVE = """
-SELECT s.shipment_id, 
+SELECT s.shipment_id, i.item_name, s.tracking_number
+FROM shipment s
+JOIN auction a ON a.auction_id = s.auction_id
+JOIN item i ON i.item_id = a.item_id
+WHERE s.shipment_status = 'Shipped' AND a.winner_login = %s;
+"""
+
+SET_SHIPMENT_DELIVERED = """
+UPDATE shipment
+SET shipment_status = 'Delivered'
+WHERE shipment_id = %s;
 """
 
 # Query for creating shipment after paying.

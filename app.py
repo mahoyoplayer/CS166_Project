@@ -39,6 +39,7 @@ class App:
             "active_bid" : ActiveBidsScreen(self),
             "browse_items" : BrowseItemsScreen(self),
             "won_auction" : WonAuctionsScreen(self),
+            "confirm_delivery" : ConfirmDeliveryScreen(self),
 
             # Seller Screens
             "sell_dashboard" : sell_scr.SellerDashboardScreen(self),
@@ -46,6 +47,7 @@ class App:
             "end_auction" : sell_scr.EndAuctionScreen(self),
             "update_item" : sell_scr.UpdateItemScreen(self),
             "start_auction" : sell_scr.StartAuctionScreen(self),
+            "ship_items" : sell_scr.ShipItemsScreen(self),
 
             # Admin Screens
             "admin_dashboard" : adm_scr.AdminDashboardScreen(self),
