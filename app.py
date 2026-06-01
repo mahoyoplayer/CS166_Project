@@ -38,6 +38,7 @@ class App:
             "search_auction" : SearchAuctionScreen(self),
             "active_bid" : ActiveBidsScreen(self),
             "browse_items" : BrowseItemsScreen(self),
+            "won_auction" : WonAuctionsScreen(self),
 
             # Seller Screens
             "sell_dashboard" : sell_scr.SellerDashboardScreen(self),

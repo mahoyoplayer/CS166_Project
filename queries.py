@@ -1,3 +1,37 @@
+# Query for buyers to see their shipped shipments to mark as delivered.
+FIND_SHIPMENTS_ACTIVE = """
+SELECT s.shipment_id, 
+"""
+
+# Query for creating shipment after paying.
+FIND_ADDRESS_BY_LOGIN = """
+SELECT address
+FROM users
+WHERE login = %s;
+"""
+
+INSERT_SHIPMENT = """
+INSERT INTO shipment (
+    auction_id,
+    address
+)
+VALUES (%s, %s)
+"""
+
+# Query for buyers to see won auctions
+FIND_WON_AUCTIONS = """
+SELECT 
+    a.auction_id,
+    i.item_name,
+    i.category,
+    i.description,
+    a.current_highest_bid,
+    a.auction_status
+FROM auction a
+JOIN item i ON a.item_id = i.item_id
+WHERE a.winner_login = %s;
+"""
+
 # Query for browsing recent items listed on auction.
 BROWSE_ITEMS = """
 SELECT 
@@ -373,16 +407,6 @@ INSERT INTO auction (
     seller_login
 )
 VALUES (%s, %s);
-"""
-
-
-INSERT_SHIPMENT = """
-INSERT INTO shipment (
-    auction_id,
-    address
-)
-VALUES (%s, %s)
-RETURNING shipment_id;
 """
 
 GET_USER_INFO = """

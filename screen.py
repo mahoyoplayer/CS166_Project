@@ -62,7 +62,6 @@ def required_text(prompt):
 
         questionary.print("This field is required.", style="bold")
 
-
 class Screen:
     def __init__(self, app):
         self.app = app
@@ -182,8 +181,9 @@ class HomeScreen(Screen):
         choices = {
             "Browse Items" : "browse_items",
             "Search Auctions" : "search_auction",
-            "Make Payments" : "make_payment",
             "See Active Bids" : "active_bid",
+            "See Won Auctions" : "won_auction",
+            "Make Payments" : "make_payment",
             "Edit Profile" : "edit_profile",
         }
 
@@ -289,8 +289,14 @@ class MakePaymentScreen(Screen):
                 f"Item: {item_name} | "
                 f"Amount: ${amount}"
             )
+
             choices.append(choice_text)
-            choice_dict[choice_text] = payment_id
+
+            choice_dict[choice_text] = (
+                payment_id,
+                auction_id,
+                amount
+            )
 
         choices.append("Return")
 
@@ -302,7 +308,7 @@ class MakePaymentScreen(Screen):
         if selected == "Return" or selected is None:
             return "home"
 
-        payment_id = choice_dict[selected]
+        payment_id, auction_id, amount = choice_dict[selected]
 
         confirm = questionary.confirm(
             f"Pay for payment ID {payment_id} (${amount})?"
@@ -311,13 +317,36 @@ class MakePaymentScreen(Screen):
         if not confirm:
             return "home"
 
+        # Complete payment
         self.app.esql.execute_update(
             queries.SET_PAYMENT_STATUS_COMPLETED,
             (payment_id,)
         )
 
+        # Get buyer address
+        address_res = self.app.esql.execute_query(
+            queries.FIND_ADDRESS_BY_LOGIN,
+            (self.app.current_user,)
+        )
+
+        if address_res.empty():
+            questionary.print(
+                "\nPayment completed, but could not find your address for shipment.\n",
+                style="bold fg:red"
+            )
+            questionary.press_any_key_to_continue().ask()
+            return "home"
+
+        address = address_res[0][0]
+
+        # Create shipment
+        self.app.esql.execute_update(
+            queries.INSERT_SHIPMENT,
+            (auction_id, address)
+        )
+
         questionary.print(
-            "\nPayment successfully completed!\n",
+            "\nPayment successfully completed! The seller will ship the item soon.\n",
             style="bold fg:green"
         )
         questionary.press_any_key_to_continue().ask()
@@ -551,3 +580,37 @@ class BrowseItemsScreen(Screen):
         questionary.press_any_key_to_continue().ask()
         return "home"
     
+class WonAuctionsScreen(Screen):
+    def show(self):
+        questionary.print("Won Auctions:", style="bold")
+
+        res = self.app.esql.execute_query(
+            queries.FIND_WON_AUCTIONS,
+            (self.app.current_user,)
+        )
+
+        if res.empty():
+            questionary.print(
+                "\nYou have not won any auctions yet.\n",
+                style="bold fg:red"
+            )
+            questionary.press_any_key_to_continue().ask()
+            return "home"
+
+        def show_value(value):
+            return "N/A" if value is None or value == "" else value
+
+        print()
+
+        for auction_id, item_name, category, description, winning_price, auction_status in res:
+            print("-" * 50)
+            print(f"Auction ID: {auction_id}")
+            print(f"Item: {item_name}")
+            print(f"Category: {category}")
+            print(f"Winning Price: ${winning_price}")
+            print(f"Description: {show_value(description)}")
+
+        print("-" * 50)
+
+        questionary.press_any_key_to_continue().ask()
+        return "home"
