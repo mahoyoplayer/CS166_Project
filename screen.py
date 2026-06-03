@@ -36,7 +36,10 @@ class RegisterScreen(Screen):
     def show(self):
         questionary.print("Registration", style="bold")
 
-        login = questionary.text("Enter Login: ").ask()
+        login = required_text("Enter Login: ")
+
+        if login is None:
+            return "welcome"
 
         # Check if login already exists
         res = self.app.esql.execute_query(
@@ -52,8 +55,15 @@ class RegisterScreen(Screen):
             questionary.press_any_key_to_continue().ask()
             return "register"
 
-        pw = questionary.password("Enter Password: ").ask()
-        confirm_pw = questionary.password("Confirm Password: ").ask()
+        pw = required_password("Enter Password: ")
+
+        if pw is None:
+            return "welcome"
+
+        confirm_pw = required_password("Confirm Password: ")
+
+        if confirm_pw is None:
+            return "welcome"
 
         if pw != confirm_pw:
             questionary.print(
@@ -63,11 +73,20 @@ class RegisterScreen(Screen):
             questionary.press_any_key_to_continue().ask()
             return "register"
 
-        phone_num = questionary.text("Enter Phone Number: ").ask()
-        address = questionary.text("Enter Address: ").ask()
-        favorite_category = questionary.text(
-            "Enter Favorite Category: "
-        ).ask()
+        phone_num = required_text("Enter Phone Number: ")
+
+        if phone_num is None:
+            return "welcome"
+
+        address = required_text("Enter Address: ")
+
+        if address is None:
+            return "welcome"
+
+        favorite_category = required_text("Enter Favorite Category: ")
+
+        if favorite_category is None:
+            return "welcome"
 
         try:
             self.app.esql.execute_update(
@@ -140,7 +159,7 @@ class HomeScreen(Screen):
         if role == "Admin":
             choices["Admin Dashboard"] = "admin_dashboard"
         
-        choices["Exit"] = "exit"
+        choices["Log Out"] = "exit"
 
         res = questionary.select(
             "Home",

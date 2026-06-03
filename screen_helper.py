@@ -56,3 +56,18 @@ def required_text(prompt):
             return value
 
         questionary.print("This field is required.", style="bold")
+
+def required_password(prompt):
+    while True:
+        value = questionary.password(prompt).ask()
+
+        if value is None:
+            return None
+
+        value = value.strip()
+
+        if value:
+            return value
+
+        questionary.print("This field is required.", style="bold")
+        

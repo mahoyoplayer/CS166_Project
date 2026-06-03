@@ -65,7 +65,7 @@ class App:
             # Buyer account
             curr_screen="home"
             self.current_user="seller1"
-            self.current_role="Seller"
+            self.current_role="Admin"
         else:
             curr_screen = "welcome"
 
