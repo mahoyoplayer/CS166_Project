@@ -1,3 +1,24 @@
+# Query for admins to see recent payments
+GET_PAYMENTS_ADMIN = """
+SELECT p.payment_id, i.item_name, p.buyer_login, p.amount, p.payment_status
+FROM payment p
+JOIN auction a on a.auction_id = p.auction_id
+JOIN item i on i.item_id = a.item_id
+ORDER BY p.payment_id DESC
+LIMIT 10;
+"""
+
+
+# Query for admins to see recent shipment
+GET_SHIPMENTS_ADMIN = """
+SELECT s.shipment_id, i.item_name, s.shipment_status, s.address, s.tracking_number
+FROM shipment s
+JOIN auction a on a.auction_id = s.auction_id
+JOIN item i on i.item_id = a.item_id
+ORDER BY s.shipment_id DESC
+LIMIT 10;
+"""
+
 # Query for sellers to ship their pending shipments.
 FIND_SHIPMENTS_PENDING = """
 SELECT s.shipment_id, i.item_name

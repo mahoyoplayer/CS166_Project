@@ -156,28 +156,6 @@ class ViewAnalyticsScreen(Screen):
         questionary.press_any_key_to_continue().ask()
         return "admin_dashboard"
 
-class AdminDashboardScreen(Screen):
-    def show(self):
-        questionary.print(
-            f"Welcome, {self.app.current_user}.",
-            style="bold"
-        )
-
-        choices = {
-            "Delete User That are not Buyers": "create_item",
-            "Remove Items" : "remove_item", 
-            "Change User Roles" : "change_user_role",
-            "View Analytics" : "view_analytics",
-            "Return": "home"
-        }
-
-        res = questionary.select(
-            "Admin Dashboard",
-            choices=list(choices.keys())
-        ).ask()
-
-        return choices[res]
-    
 class ChangeRoleScreen(Screen):
     def show(self):
         questionary.print("Change User Role:", style="bold")
@@ -247,4 +225,61 @@ class ChangeRoleScreen(Screen):
         questionary.press_any_key_to_continue().ask()
 
         return "admin_dashboard"
+
+class ViewShipmentsRecentScreen(Screen):
+    def show(self):
+        questionary.print("Recently Created Shipments:", style="bold")
+
+        res = self.app.esql.execute_query(
+            queries.GET_SHIPMENTS_ADMIN
+        )
+
+        if res.empty():
+            questionary.print(
+                "\nThere are no shipments to display.\n",
+                style="bold fg:red"
+            )
+            questionary.press_any_key_to_continue().ask()
+            return "admin_dashboard"
+
+        def show_value(value):
+            return "N/A" if value is None or value == "" else value
+
+        print()
+
+        for shipment_id, item_name, shipment_status, address, tracking_number in res:
+            print("-" * 50)
+            print(f"Shipment ID: {shipment_id}")
+            print(f"Item: {item_name}")
+            print(f"Status: {shipment_status}")
+            print(f"Address: {address}")
+            print(f"Tracking Number: {show_value(tracking_number)}")
+
+        print("-" * 50)
+
+        questionary.press_any_key_to_continue().ask()
+        return "admin_dashboard"
     
+
+class AdminDashboardScreen(Screen):
+    def show(self):
+        questionary.print(
+            f"Welcome, {self.app.current_user}.",
+            style="bold"
+        )
+
+        choices = {
+            "Delete User That are not Buyers": "create_item",
+            "Remove Items" : "remove_item", 
+            "Change User Roles" : "change_user_role",
+            "View Analytics" : "view_analytics",
+            "View Recent Shipments" : "view_shipments_recent",
+            "Return": "home"
+        }
+
+        res = questionary.select(
+            "Admin Dashboard",
+            choices=list(choices.keys())
+        ).ask()
+
+        return choices[res]
