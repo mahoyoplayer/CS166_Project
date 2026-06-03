@@ -1,66 +1,11 @@
 import questionary
 import queries
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
+from screen_helper import *
 
 """
 https://questionary.readthedocs.io/en/stable/pages/quickstart.html
 """
-
-def is_valid_price(value):
-            if value is None:
-                return False
-
-            value = value.strip()
-
-            try:
-                price = Decimal(value)
-            except InvalidOperation:
-                return False
-
-            # Reject NaN and Infinity
-            if not price.is_finite():
-                return False
-
-            # Must be positive
-            if price < Decimal("0"):
-                return False
-
-            exponent = price.as_tuple().exponent
-
-            # Makes Pylance happy
-            if not isinstance(exponent, int):
-                return False
-
-            # Must have at most 2 decimal places
-            if exponent < -2:
-                return False
-
-            # Must fit NUMERIC(10,2)
-            if price > Decimal("99999999.99"):
-                return False
-
-            return True
-
-def optional_text(value):
-            if value is None:
-                return None
-
-            value = value.strip()
-            return value if value else None
-
-def required_text(prompt):
-    while True:
-        value = questionary.text(prompt).ask()
-
-        if value is None:
-            return None
-
-        value = value.strip()
-
-        if value:
-            return value
-
-        questionary.print("This field is required.", style="bold")
 
 class Screen:
     def __init__(self, app):
@@ -216,25 +161,60 @@ class EditProfileScreen(Screen):
 
         phone_num, address, favorite_category, password = res[0]
 
-        new_phone_num = questionary.text(
-            "Phone Number:",
-            default=phone_num
-        ).ask()
+        while True:
+            new_phone_num = questionary.text(
+                "Phone Number:",
+                default=phone_num
+            ).ask()
 
-        new_address = questionary.text(
-            "Address:",
-            default=address
-        ).ask()
+            if new_phone_num is None:
+                return "home"
 
-        new_favorite_category = questionary.text(
-            "Favorite Category:",
-            default=favorite_category if favorite_category is not None else ""
-        ).ask()
+            new_phone_num = new_phone_num.strip()
 
-        new_password = questionary.text(
-            "Password:",
-            default=password
-        ).ask()
+            if new_phone_num:
+                break
+
+            questionary.print("Phone number is required.", style="bold fg:red")
+
+        while True:
+            new_address = questionary.text(
+                "Address:",
+                default=address
+            ).ask()
+
+            if new_address is None:
+                return "home"
+
+            new_address = new_address.strip()
+
+            if new_address:
+                break
+
+            questionary.print("Address is required.", style="bold fg:red")
+
+        new_favorite_category = optional_text(
+            questionary.text(
+                "Favorite Category:",
+                default=favorite_category if favorite_category is not None else ""
+            ).ask()
+        )
+
+        while True:
+            new_password = questionary.text(
+                "Password:",
+                default=password
+            ).ask()
+
+            if new_password is None:
+                return "home"
+
+            new_password = new_password.strip()
+
+            if new_password:
+                break
+
+            questionary.print("Password is required.", style="bold fg:red")
 
         self.app.esql.execute_update(
             queries.UPDATE_USER_INFO,

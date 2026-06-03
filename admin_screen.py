@@ -2,7 +2,6 @@ from screen import Screen
 import questionary
 import queries
 
-
 class RemoveItemScreen(Screen):
     def show(self):
         questionary.print("Remove Item:", style="bold")
@@ -314,5 +313,4 @@ class AdminDashboardScreen(Screen):
         ).ask()
 
         return choices[res]
-    
     
