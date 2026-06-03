@@ -54,7 +54,8 @@ class App:
             "change_user_role" : adm_scr.ChangeRoleScreen(self),
             "view_analytics" : adm_scr.ViewAnalyticsScreen(self),
             "remove_item" : adm_scr.RemoveItemScreen(self),
-            "view_shipments_recent" : adm_scr.ViewShipmentsRecentScreen(self)
+            "view_shipments_recent" : adm_scr.ViewShipmentsRecentScreen(self),
+            "view_payments_recent" : adm_scr.ViewPaymentsRecentScreen(self)
         }
         
         

@@ -236,7 +236,7 @@ class ViewShipmentsRecentScreen(Screen):
 
         if res.empty():
             questionary.print(
-                "\nThere are no shipments to display.\n",
+                "\nThere are no recent shipments to display.\n",
                 style="bold fg:red"
             )
             questionary.press_any_key_to_continue().ask()
@@ -259,8 +259,38 @@ class ViewShipmentsRecentScreen(Screen):
 
         questionary.press_any_key_to_continue().ask()
         return "admin_dashboard"
-    
+        
+class ViewPaymentsRecentScreen(Screen):
+    def show(self):
+        questionary.print("Recent Payments:", style="bold")
 
+        res = self.app.esql.execute_query(
+            queries.GET_PAYMENTS_ADMIN
+        )
+
+        if res.empty():
+            questionary.print(
+                "\nThere are no recent payments to display.\n",
+                style="bold fg:red"
+            )
+            questionary.press_any_key_to_continue().ask()
+            return "admin_dashboard"
+
+        print()
+
+        for payment_id, item_name, buyer_login, amount, payment_status in res:
+            print("-" * 50)
+            print(f"Payment ID: {payment_id}")
+            print(f"Item: {item_name}")
+            print(f"Buyer: {buyer_login}")
+            print(f"Amount: ${amount}")
+            print(f"Status: {payment_status}")
+
+        print("-" * 50)
+
+        questionary.press_any_key_to_continue().ask()
+        return "admin_dashboard"
+    
 class AdminDashboardScreen(Screen):
     def show(self):
         questionary.print(
@@ -274,6 +304,7 @@ class AdminDashboardScreen(Screen):
             "Change User Roles" : "change_user_role",
             "View Analytics" : "view_analytics",
             "View Recent Shipments" : "view_shipments_recent",
+            "View Recent Payments" : "view_payments_recent",
             "Return": "home"
         }
 
@@ -283,3 +314,5 @@ class AdminDashboardScreen(Screen):
         ).ask()
 
         return choices[res]
+    
+    
