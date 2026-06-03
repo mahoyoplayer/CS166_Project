@@ -30,13 +30,6 @@ This project is a PostgreSQL-backed auction marketplace application. Users can r
 - View recent payments
 - View recent shipments
 
-## Requirements
-
-- Python 3
-- PostgreSQL
-- Python virtual environment
-- Required Python packages listed in the project environment
-
 ## Startup Instructions
 
 ### 1. Activate the virtual environment.
