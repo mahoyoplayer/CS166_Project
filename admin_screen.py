@@ -100,16 +100,26 @@ class ViewAnalyticsScreen(Screen):
         num_active_auction_res = self.app.esql.execute_query(
             queries.GET_NUM_AUCTION_ACTIVE
         )
+        total_revenue_res = self.app.esql.execute_query(
+            queries.FIND_TOTAL_REVENUE_ALL_TIME
+        )
 
         user_count = user_count_res[0][0]
         num_bids_today = num_bids_today_res[0][0]
         num_auction = num_auction_res[0][0]
         num_active_auction = num_active_auction_res[0][0]
 
+        total_revenue = total_revenue_res[0][0]
+
+        # If there are no completed payments, SUM(amount) returns None
+        if total_revenue is None:
+            total_revenue = 0
+
         questionary.print(f"Total Users: {user_count}", style="bold")
         questionary.print(f"Bids Today: {num_bids_today}", style="bold")
         questionary.print(f"Total Auctions: {num_auction}", style="bold")
         questionary.print(f"Active Auctions: {num_active_auction}", style="bold")
+        questionary.print(f"Total Revenue All Time: ${total_revenue:.2f}", style="bold")
 
         print("\n" + "-" * 30)
         questionary.print("Most Bidded Auctions", style="bold")

@@ -1,3 +1,9 @@
+FIND_TOTAL_REVENUE_ALL_TIME = """
+SELECT SUM(amount)
+FROM payment
+WHERE payment_status = 'Completed';
+"""
+
 # Query for sellers to see their recent auctions.
 GET_RECENT_AUCTIONS_BY_SELLER = """
 SELECT a.auction_id, i.item_name, a.current_highest_bid, a.auction_status
