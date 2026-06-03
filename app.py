@@ -13,7 +13,7 @@ dbport = 5432#sys.argv[2]
 user = "ryan" #sys.argv[3]
 password = "ryan123"
 
-DEBUG = True
+DEBUG = False
 
 def clear_console() -> None:
     clear_command = "cls" if os.name == "nt" else "clear"

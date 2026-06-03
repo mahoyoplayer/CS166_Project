@@ -83,10 +83,7 @@ class RegisterScreen(Screen):
         if address is None:
             return "welcome"
 
-        favorite_category = required_text("Enter Favorite Category: ")
-
-        if favorite_category is None:
-            return "welcome"
+        favorite_category = optional_text(questionary.text("Enter Favorite Category optional: ").ask())
 
         try:
             self.app.esql.execute_update(
