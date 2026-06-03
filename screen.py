@@ -127,7 +127,7 @@ class HomeScreen(Screen):
             "Browse Items" : "browse_items",
             "Search Auctions" : "search_auction",
             "See Active Bids" : "active_bid",
-            "See Won Auctions" : "won_auction",
+            "See Previously Won Auctions" : "won_auction",
             "Make Payments" : "make_payment",
             "See Ongoing Item Shipments" : "confirm_delivery",
             "Edit Profile" : "edit_profile",

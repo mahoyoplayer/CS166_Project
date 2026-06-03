@@ -14,6 +14,7 @@ class SellerDashboardScreen(Screen):
         choices = {
             "Create Item": "create_item",
             "Update Item": "update_item",
+            "My Auctions" : "auctions_by_seller",
             "Start Auction": "start_auction",
             "End Auction": "end_auction",
             "Ship Sold Items" : "ship_items",
@@ -27,6 +28,49 @@ class SellerDashboardScreen(Screen):
 
         return choices[res]
     
+class AuctionsBySellerScreen(Screen):
+    def show(self):
+        questionary.print("My Recent Auctions:", style="bold")
+
+        res = self.app.esql.execute_query(
+            queries.GET_RECENT_AUCTIONS_BY_SELLER,
+            (self.app.current_user,)
+        )
+
+        if res.empty():
+            questionary.print(
+                "\nThere are no records of you having created an auction yet.\n",
+                style="bold fg:red"
+            )
+            questionary.press_any_key_to_continue().ask()
+            return "sell_dashboard"
+
+        print()
+
+        for auction_id, item_name, current_highest_bid, auction_status in res:
+            bid_count_res = self.app.esql.execute_query(
+                queries.GET_BID_COUNT,
+                (auction_id,)
+            )
+
+            bid_count = bid_count_res[0][0]
+
+            print("-" * 50)
+            print(f"Auction ID: {auction_id}")
+            print(f"Item: {item_name}")
+            print(f"Status: {auction_status}")
+            print(f"Number of Bids: {bid_count}")
+
+            if bid_count > 0:
+                print(f"Current Highest Bid: ${current_highest_bid}")
+            else:
+                print("Current Highest Bid: N/A")
+
+        print("-" * 50)
+
+        questionary.press_any_key_to_continue().ask()
+        return "sell_dashboard"
+
 class StartAuctionScreen(Screen):
     def show(self):
         seller_login = self.app.current_user

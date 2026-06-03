@@ -48,6 +48,7 @@ class App:
             "update_item" : sell_scr.UpdateItemScreen(self),
             "start_auction" : sell_scr.StartAuctionScreen(self),
             "ship_items" : sell_scr.ShipItemsScreen(self),
+            "auctions_by_seller" : sell_scr.AuctionsBySellerScreen(self),
 
             # Admin Screens
             "admin_dashboard" : adm_scr.AdminDashboardScreen(self),
@@ -63,8 +64,8 @@ class App:
         if DEBUG:
             # Buyer account
             curr_screen="home"
-            self.current_user="buyer2"
-            self.current_role="Admin"
+            self.current_user="seller1"
+            self.current_role="Seller"
         else:
             curr_screen = "welcome"
 

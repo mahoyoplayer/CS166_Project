@@ -1,3 +1,20 @@
+# Query for sellers to see their recent auctions.
+GET_RECENT_AUCTIONS_BY_SELLER = """
+SELECT a.auction_id, i.item_name, a.current_highest_bid, a.auction_status
+FROM auction a
+JOIN item i ON i.item_id = a.item_id
+WHERE a.seller_login = %s
+ORDER BY a.auction_id DESC
+LIMIT 10;
+"""
+
+# Query for sellers to see how many bids are on an auction.
+GET_BID_COUNT = """
+SELECT COUNT(*)
+FROM bid
+WHERE auction_id = %s;
+"""
+
 # Query for admins to see recent payments
 GET_PAYMENTS_ADMIN = """
 SELECT p.payment_id, i.item_name, p.buyer_login, p.amount, p.payment_status
