@@ -126,7 +126,7 @@ WHERE a.auction_status = 'Active'
 ORDER BY i.item_name;
 """
 
-# Queries for buyers to find auctions that they do not own and make bids.
+# Queries for buyers to find auctions that they do not own and make bids. (Also ones they are not winning)
 FIND_AUCTION_BY_ITEM_NAME = """
 SELECT 
     a.auction_id,
@@ -389,41 +389,6 @@ SELECT
 FROM item
 WHERE item_id = %s;
 """
-
-# For browsing items in auction
-AUCTION_SEARCH_BY_NAME = """
-SELECT 
-    a.auction_id,
-    i.item_name,
-    i.category,
-    i.description,
-    a.current_highest_bid
-FROM auction a
-JOIN item i ON i.item_id = a.item_id
-WHERE i.item_name LIKE %s
-LIMIT 4;
-"""
-
-AUCTION_SEARCH_BY_CATEGORY = """
-SELECT 
-    a.auction_id,
-    i.item_name,
-    i.category,
-    i.description,
-    a.current_highest_bid
-FROM auction a
-JOIN item i ON i.item_id = a.item_id
-WHERE i.category = %s
-LIMIT 4;
-"""
-
-
-
-
-
-
-
-
 
 """
 Work on everything above
