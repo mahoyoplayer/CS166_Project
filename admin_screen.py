@@ -387,14 +387,14 @@ class AdminDashboardScreen(Screen):
         )
 
         choices = {
-    "Remove Items" : "remove_item", 
-    "Change User Roles" : "change_user_role",
-    "View Analytics" : "view_analytics",
-    "View Recent Shipments" : "view_shipments_recent",
-    "View Recent Payments" : "view_payments_recent",
-    "Edit Profile" : "edit_profile",
-    "Log Out": "exit"
-}
+            "Remove Items" : "remove_item", 
+            "Change User Roles" : "change_user_role",
+            "View Analytics" : "view_analytics",
+            "View Recent Shipments" : "view_shipments_recent",
+            "View Recent Payments" : "view_payments_recent",
+            "Edit Profile" : "edit_profile",
+            "Log Out": "exit"
+        }
 
         res = questionary.select(
             "Admin Dashboard",
