@@ -34,12 +34,12 @@ class App:
             "home" : buy_scr.BuyerDashboardScreen(self),
             "edit_profile": EditProfileScreen(self),
             "debug": DebugScreen(self),
-            "make_payment" : MakePaymentScreen(self),
-            "search_auction" : SearchAuctionScreen(self),
-            "active_bid" : ActiveBidsScreen(self),
-            "browse_items" : BrowseItemsScreen(self),
-            "won_auction" : WonAuctionsScreen(self),
-            "confirm_delivery" : ConfirmDeliveryScreen(self),
+            "make_payment" : buy_scr.MakePaymentScreen(self),
+            "search_auction" : buy_scr.SearchAuctionScreen(self),
+            "active_bid" : buy_scr.ActiveBidsScreen(self),
+            "browse_items" : buy_scr.BrowseItemsScreen(self),
+            "won_auction" : buy_scr.WonAuctionsScreen(self),
+            "confirm_delivery" : buy_scr.ConfirmDeliveryScreen(self),
 
             # Buyer Screens
             "buyer_dashboard" : buy_scr.BuyerDashboardScreen(self),
