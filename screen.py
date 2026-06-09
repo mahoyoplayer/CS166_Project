@@ -150,6 +150,10 @@ class HomeScreen(Screen):
         }
 
         role = self.app.current_role
+        
+        if role == "Buyer":
+             choices["Buyer Dashboard"] = "buyer_dashboard"
+        
         if role == "Seller":
             choices["Seller Dashboard"] = "sell_dashboard"
 
