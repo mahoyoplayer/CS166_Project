@@ -6,6 +6,17 @@ from screen_helper import *
 """
 https://questionary.readthedocs.io/en/stable/pages/quickstart.html
 """
+def find_role_home(role: str) -> str:
+    match role:
+        case "Admin":
+            return "admin_dashboard"
+        case "Seller":
+            return "sell_dashboard"
+        case "Buyer": 
+            return "buyer_dashboard"
+        case _:
+            raise RuntimeError("User has unidentifiable role. Should never reach here.")
+    return ""
 
 class Screen:
     def __init__(self, app):
@@ -126,16 +137,7 @@ class LoginScreen(Screen):
             # There was a user with this login + pass. Login successful.
             self.app.current_user = login
             self.app.current_role = res[0][0]
-            match self.app.current_role:
-                case "Admin":
-                    return "admin_dashboard"
-                case "Seller":
-                    return "sell_dashboard"
-                case "Buyer": 
-                    return "buyer_dashboard"
-                case _:
-                    raise RuntimeError("User has unidentifiable role. Should never reach here.")
-            return ""
+            return find_role_home(self.app.current_role)
         
         # No match, invalid
         questionary.print("\n\n Incorrect Credentials. Please try again.", style = "bold fg:red", end = "\n\n")
@@ -198,7 +200,7 @@ class EditProfileScreen(Screen):
             ).ask()
 
             if new_phone_num is None:
-                return "home"
+                return find_role_home(self.app.current_role)
 
             new_phone_num = new_phone_num.strip()
 
@@ -214,7 +216,7 @@ class EditProfileScreen(Screen):
             ).ask()
 
             if new_address is None:
-                return "home"
+                return find_role_home(self.app.current_role)
 
             new_address = new_address.strip()
 
@@ -237,7 +239,7 @@ class EditProfileScreen(Screen):
             ).ask()
 
             if new_password is None:
-                return "home"
+                return find_role_home(self.app.current_role)
 
             new_password = new_password.strip()
 
@@ -262,7 +264,7 @@ class EditProfileScreen(Screen):
             style="bold fg:green"
         )
         questionary.press_any_key_to_continue().ask()
-        return "home"
+        return find_role_home(self.app.current_role)
 
 class DebugScreen(Screen):
     def show(self):
