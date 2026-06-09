@@ -205,7 +205,13 @@ class ChangeRoleScreen(Screen):
             style="bold"
         )
 
-        role_choices = ["Buyer", "Seller", "Admin", "Return"]
+        role_choices = []
+
+        for role in ["Buyer", "Seller", "Admin"]:
+            if role != current_role:
+                role_choices.append(role)
+
+        role_choices.append("Return")
 
         new_role = questionary.select(
             "Select new role:",
@@ -215,6 +221,72 @@ class ChangeRoleScreen(Screen):
         if new_role == "Return" or new_role is None:
             return "admin_dashboard"
 
+        # Check whether this role change is allowed
+        dep_res = self.app.esql.execute_query(
+            queries.GET_USER_ROLE_DEPENDENCIES,
+            (user_login, user_login, user_login, user_login, user_login)
+        )
+
+        (
+            bid_count,
+            payment_count,
+            won_auction_count,
+            item_count,
+            seller_auction_count
+        ) = dep_res[0]
+
+        blocking_reasons = []
+
+        # Buyer can only change role if they have no buyer dependencies
+        if current_role == "Buyer":
+            if bid_count > 0:
+                blocking_reasons.append(f"{bid_count} bid(s)")
+            if payment_count > 0:
+                blocking_reasons.append(f"{payment_count} payment(s)")
+            if won_auction_count > 0:
+                blocking_reasons.append(f"{won_auction_count} won auction(s)")
+
+        # Seller can only change role if they have no seller dependencies
+        elif current_role == "Seller":
+            if item_count > 0:
+                blocking_reasons.append(f"{item_count} listed item(s)")
+            if seller_auction_count > 0:
+                blocking_reasons.append(f"{seller_auction_count} auction(s)")
+
+        # Admin can always change because no child table depends on Admin role
+        elif current_role == "Admin":
+            blocking_reasons = []
+
+        if blocking_reasons:
+            questionary.print(
+                f"\nCannot change {user_login}'s role from {current_role} to {new_role}.\n",
+                style="bold fg:red"
+            )
+
+            questionary.print(
+                "This user is still referenced by role-dependent records:",
+                style="bold"
+            )
+
+            for reason in blocking_reasons:
+                print(f"- {reason}")
+
+            print()
+
+            if current_role == "Buyer":
+                questionary.print(
+                    "A Buyer is locked once they have bids, payments, or won auctions.",
+                    style="bold"
+                )
+            elif current_role == "Seller":
+                questionary.print(
+                    "A Seller is locked once they have listed items or created auctions.",
+                    style="bold"
+                )
+
+            questionary.press_any_key_to_continue().ask()
+            return "admin_dashboard"
+
         confirm = questionary.confirm(
             f"Change {user_login}'s role from {current_role} to {new_role}?"
         ).ask()
@@ -222,17 +294,24 @@ class ChangeRoleScreen(Screen):
         if not confirm:
             return "admin_dashboard"
 
-        self.app.esql.execute_update(
-            queries.SET_USER_ROLE,
-            (new_role, user_login)
-        )
+        try:
+            self.app.esql.execute_update(
+                queries.SET_USER_ROLE,
+                (new_role, user_login)
+            )
 
-        questionary.print(
-            f"\nSuccessfully changed {user_login}'s role to {new_role}.\n",
-            style="bold fg:green"
-        )
+            questionary.print(
+                f"\nSuccessfully changed {user_login}'s role to {new_role}.\n",
+                style="bold fg:green"
+            )
+
+        except Exception as e:
+            questionary.print(
+                f"\nRole change failed: {e}\n",
+                style="bold fg:red"
+            )
+
         questionary.press_any_key_to_continue().ask()
-
         return "admin_dashboard"
 
 class ViewShipmentsRecentScreen(Screen):

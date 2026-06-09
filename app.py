@@ -8,11 +8,12 @@ import buyer_screen as buy_scr
 import admin_screen as adm_scr
 import seller_screen as sell_scr
 
-dbname = "cs166_final" #sys.argv[1]
-dbport = 5432#sys.argv[2]
-user = "ryan" #sys.argv[3]
+dbname = "cs166_final"
+dbport = 5432
+user = "ryan" 
 password = "ryan123"
 
+# Debug flag
 DEBUG = False
 
 def clear_console() -> None:

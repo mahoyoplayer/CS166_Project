@@ -1,3 +1,13 @@
+# For checking if a user can change their role.
+GET_USER_ROLE_DEPENDENCIES = """
+SELECT
+    (SELECT COUNT(*) FROM bid WHERE buyer_login = %s) AS bid_count,
+    (SELECT COUNT(*) FROM payment WHERE buyer_login = %s) AS payment_count,
+    (SELECT COUNT(*) FROM auction WHERE winner_login = %s) AS won_auction_count,
+    (SELECT COUNT(*) FROM item WHERE seller_login = %s) AS item_count,
+    (SELECT COUNT(*) FROM auction WHERE seller_login = %s) AS seller_auction_count;
+"""
+
 FIND_TOTAL_REVENUE_ALL_TIME = """
 SELECT SUM(amount)
 FROM payment
