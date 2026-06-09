@@ -31,7 +31,7 @@ class App:
             "welcome" : WelcomeScreen(self),
             "login" : LoginScreen(self),
             "register" : RegisterScreen(self),
-            "home" : HomeScreen(self),
+            "home" : buy_scr.BuyerDashboardScreen(self),
             "edit_profile": EditProfileScreen(self),
             "debug": DebugScreen(self),
             "make_payment" : MakePaymentScreen(self),

@@ -313,7 +313,8 @@ class AdminDashboardScreen(Screen):
     "View Analytics" : "view_analytics",
     "View Recent Shipments" : "view_shipments_recent",
     "View Recent Payments" : "view_payments_recent",
-    "Return": "home"
+    "Edit Profile" : "edit_profile",
+    "Log Out": "exit"
 }
 
         res = questionary.select(

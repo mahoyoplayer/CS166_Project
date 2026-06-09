@@ -19,7 +19,7 @@ class BuyerDashboardScreen(Screen):
             "Make Payments": "make_payment",
             "See Ongoing Item Shipments": "confirm_delivery",
             "Edit Profile": "edit_profile",
-            "Return": "home"
+            "Log Out": "exit"
         }
 
         res = questionary.select(

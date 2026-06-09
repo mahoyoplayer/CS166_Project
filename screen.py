@@ -126,7 +126,16 @@ class LoginScreen(Screen):
             # There was a user with this login + pass. Login successful.
             self.app.current_user = login
             self.app.current_role = res[0][0]
-            return "home"
+            match self.app.current_role:
+                case "Admin":
+                    return "admin_dashboard"
+                case "Seller":
+                    return "sell_dashboard"
+                case "Buyer": 
+                    return "buyer_dashboard"
+                case _:
+                    raise RuntimeError("User has unidentifiable role. Should never reach here.")
+            return ""
         
         # No match, invalid
         questionary.print("\n\n Incorrect Credentials. Please try again.", style = "bold fg:red", end = "\n\n")

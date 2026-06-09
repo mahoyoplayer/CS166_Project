@@ -18,7 +18,8 @@ class SellerDashboardScreen(Screen):
             "Start Auction": "start_auction",
             "End Auction": "end_auction",
             "Ship Sold Items" : "ship_items",
-            "Return": "home"
+            "Edit Profile" : "edit_profile",
+            "Log Out": "exit"
         }
 
         res = questionary.select(
