@@ -41,6 +41,9 @@ class App:
             "won_auction" : WonAuctionsScreen(self),
             "confirm_delivery" : ConfirmDeliveryScreen(self),
 
+            # Buyer Screens
+            "buyer_dashboard" : buy_scr.BuyerDashboardScreen(self),
+
             # Seller Screens
             "sell_dashboard" : sell_scr.SellerDashboardScreen(self),
             "create_item" : sell_scr.CreateItemScreen(self),
