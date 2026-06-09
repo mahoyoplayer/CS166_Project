@@ -308,14 +308,13 @@ class AdminDashboardScreen(Screen):
         )
 
         choices = {
-            "Delete User That are not Buyers": "create_item",
-            "Remove Items" : "remove_item", 
-            "Change User Roles" : "change_user_role",
-            "View Analytics" : "view_analytics",
-            "View Recent Shipments" : "view_shipments_recent",
-            "View Recent Payments" : "view_payments_recent",
-            "Return": "home"
-        }
+    "Remove Items" : "remove_item", 
+    "Change User Roles" : "change_user_role",
+    "View Analytics" : "view_analytics",
+    "View Recent Shipments" : "view_shipments_recent",
+    "View Recent Payments" : "view_payments_recent",
+    "Return": "home"
+}
 
         res = questionary.select(
             "Admin Dashboard",
