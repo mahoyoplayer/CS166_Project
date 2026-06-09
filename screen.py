@@ -561,19 +561,82 @@ class BrowseItemsScreen(Screen):
             questionary.press_any_key_to_continue().ask()
             return "home"
 
-        print()
+        choice_dict = {}
+        choices = []
 
         for auction_id, item_id, item_name, category, starting_price, current_highest_bid, seller_login in res:
-            print(
-                f"Auction ID: {auction_id} | "
-                f"Item: {item_name} | "
-                f"Category: {category} | "
+            choice_text = (
+                f"{item_name} ({category}) | "
                 f"Starting: ${starting_price} | "
                 f"Current Bid: ${current_highest_bid}"
             )
+            choices.append(choice_text)
+            choice_dict[choice_text] = (
+                auction_id,
+                item_id,
+                Decimal(str(current_highest_bid)),
+                Decimal(str(starting_price)),
+                item_name
+            )
 
-        print()
+        choices.append("Return")
 
+        selected = questionary.select(
+            "Select an item to bid on, or Return to go back:",
+            choices=choices
+        ).ask()
+
+        if selected == "Return" or selected is None:
+            return "home"
+
+        auction_id, item_id, current_highest_bid, starting_price, item_name = choice_dict[selected]
+
+        min_bid = max(current_highest_bid, starting_price)
+
+        while True:
+            bid_amount_input = questionary.text(
+                f"Enter bid amount greater than ${min_bid}, or -1 to cancel: "
+            ).ask()
+
+            if bid_amount_input is None:
+                return "home"
+
+            bid_amount_input = bid_amount_input.strip()
+
+            if bid_amount_input == "-1":
+                return "home"
+
+            if is_valid_price(bid_amount_input):
+                bid_amount = Decimal(bid_amount_input)
+                if bid_amount > min_bid:
+                    break
+
+            questionary.print(
+                f"Invalid bid. Bid must be greater than ${min_bid}.",
+                style="bold fg:red"
+            )
+
+        confirm = questionary.confirm(
+            f"Place bid of ${bid_amount} on '{item_name}'?"
+        ).ask()
+
+        if not confirm:
+            return "home"
+
+        self.app.esql.execute_update(
+            queries.INSERT_BID,
+            (auction_id, self.app.current_user, bid_amount)
+        )
+
+        self.app.esql.execute_update(
+            queries.UPDATE_CURR_HIGHEST_BID,
+            (bid_amount, auction_id)
+        )
+
+        questionary.print(
+            "\nBid successfully placed!\n",
+            style="bold fg:green"
+        )
         questionary.press_any_key_to_continue().ask()
         return "home"
     
