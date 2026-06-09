@@ -235,12 +235,20 @@ class SearchAuctionScreen(Screen):
         print(f"Description: {show_value(description)}")
         print("-" * 40 + "\n")
 
+        # Since bid_amount must be > 0, current_highest_bid == 0 means no bids yet.
+        no_bids_yet = current_highest_bid == Decimal("0")
+
         min_bid = max(current_highest_bid, starting_price)
 
         while True:
-            bid_amount_input = questionary.text(
-                f"Enter bid amount greater than ${min_bid}, or -1 to cancel: "
-            ).ask()
+            if no_bids_yet and starting_price > Decimal("0"):
+                bid_amount_input = questionary.text(
+                    f"Enter bid amount greater than or equal to ${min_bid}, or -1 to cancel: "
+                ).ask()
+            else:
+                bid_amount_input = questionary.text(
+                    f"Enter bid amount greater than ${min_bid}, or -1 to cancel: "
+                ).ask()
 
             if bid_amount_input is None:
                 return "home"
@@ -253,13 +261,30 @@ class SearchAuctionScreen(Screen):
             if is_valid_price(bid_amount_input):
                 bid_amount = Decimal(bid_amount_input)
 
-                if bid_amount > min_bid:
-                    break
+                # First bid may equal starting price if starting price > 0.
+                if no_bids_yet and starting_price > Decimal("0"):
+                    if bid_amount >= min_bid:
+                        break
 
-            questionary.print(
-                f"Invalid bid. Bid must be greater than ${min_bid}.",
-                style="bold fg:red"
-            )
+                    questionary.print(
+                        f"Invalid bid. First bid must be at least ${min_bid}.",
+                        style="bold fg:red"
+                    )
+
+                # Otherwise, bid must be strictly greater.
+                else:
+                    if bid_amount > min_bid:
+                        break
+
+                    questionary.print(
+                        f"Invalid bid. Bid must be greater than ${min_bid}.",
+                        style="bold fg:red"
+                    )
+            else:
+                questionary.print(
+                    "Invalid bid. Enter a valid price with at most 2 decimal places.",
+                    style="bold fg:red"
+                )
 
         confirm = questionary.confirm(
             f"Place bid of ${bid_amount} on '{item_name}'?"
@@ -268,22 +293,29 @@ class SearchAuctionScreen(Screen):
         if not confirm:
             return "home"
 
-        self.app.esql.execute_update(
-            queries.INSERT_BID,
-            (auction_id, curr_login, bid_amount)
-        )
+        try:
+            self.app.esql.execute_update(
+                queries.INSERT_BID,
+                (auction_id, curr_login, bid_amount)
+            )
 
-        self.app.esql.execute_update(
-            queries.UPDATE_CURR_HIGHEST_BID,
-            (bid_amount, auction_id)
-        )
+            self.app.esql.execute_update(
+                queries.UPDATE_CURR_HIGHEST_BID,
+                (bid_amount, auction_id)
+            )
 
-        questionary.print(
-            "\nBid successfully placed!\n",
-            style="bold fg:green"
-        )
+            questionary.print(
+                "\nBid successfully placed!\n",
+                style="bold fg:green"
+            )
+
+        except Exception as e:
+            questionary.print(
+                f"\nFailed to place bid: {e}\n",
+                style="bold fg:red"
+            )
+
         questionary.press_any_key_to_continue().ask()
-
         return "home"
     
 class ActiveBidsScreen(Screen):
@@ -343,7 +375,9 @@ class BrowseItemsScreen(Screen):
                 f"Starting: ${starting_price} | "
                 f"Current Bid: ${current_highest_bid}"
             )
+
             choices.append(choice_text)
+
             choice_dict[choice_text] = (
                 auction_id,
                 item_id,
@@ -364,12 +398,20 @@ class BrowseItemsScreen(Screen):
 
         auction_id, item_id, current_highest_bid, starting_price, item_name = choice_dict[selected]
 
+        # Since bid_amount must be > 0, current_highest_bid == 0 means no bids yet.
+        no_bids_yet = current_highest_bid == Decimal("0")
+
         min_bid = max(current_highest_bid, starting_price)
 
         while True:
-            bid_amount_input = questionary.text(
-                f"Enter bid amount greater than ${min_bid}, or -1 to cancel: "
-            ).ask()
+            if no_bids_yet and starting_price > Decimal("0"):
+                bid_amount_input = questionary.text(
+                    f"Enter bid amount greater than or equal to ${min_bid}, or -1 to cancel: "
+                ).ask()
+            else:
+                bid_amount_input = questionary.text(
+                    f"Enter bid amount greater than ${min_bid}, or -1 to cancel: "
+                ).ask()
 
             if bid_amount_input is None:
                 return "home"
@@ -381,13 +423,33 @@ class BrowseItemsScreen(Screen):
 
             if is_valid_price(bid_amount_input):
                 bid_amount = Decimal(bid_amount_input)
-                if bid_amount > min_bid:
-                    break
 
-            questionary.print(
-                f"Invalid bid. Bid must be greater than ${min_bid}.",
-                style="bold fg:red"
-            )
+                # Case 1: no bids yet, starting price is positive
+                # First bid may equal the starting price.
+                if no_bids_yet and starting_price > Decimal("0"):
+                    if bid_amount >= min_bid:
+                        break
+
+                    questionary.print(
+                        f"Invalid bid. First bid must be at least ${min_bid}.",
+                        style="bold fg:red"
+                    )
+
+                # Case 2: there is already a bid, or starting price is 0
+                # Bid must be strictly greater.
+                else:
+                    if bid_amount > min_bid:
+                        break
+
+                    questionary.print(
+                        f"Invalid bid. Bid must be greater than ${min_bid}.",
+                        style="bold fg:red"
+                    )
+            else:
+                questionary.print(
+                    "Invalid bid. Enter a valid price with at most 2 decimal places.",
+                    style="bold fg:red"
+                )
 
         confirm = questionary.confirm(
             f"Place bid of ${bid_amount} on '{item_name}'?"
@@ -396,20 +458,28 @@ class BrowseItemsScreen(Screen):
         if not confirm:
             return "home"
 
-        self.app.esql.execute_update(
-            queries.INSERT_BID,
-            (auction_id, self.app.current_user, bid_amount)
-        )
+        try:
+            self.app.esql.execute_update(
+                queries.INSERT_BID,
+                (auction_id, self.app.current_user, bid_amount)
+            )
 
-        self.app.esql.execute_update(
-            queries.UPDATE_CURR_HIGHEST_BID,
-            (bid_amount, auction_id)
-        )
+            self.app.esql.execute_update(
+                queries.UPDATE_CURR_HIGHEST_BID,
+                (bid_amount, auction_id)
+            )
 
-        questionary.print(
-            "\nBid successfully placed!\n",
-            style="bold fg:green"
-        )
+            questionary.print(
+                "\nBid successfully placed!\n",
+                style="bold fg:green"
+            )
+
+        except Exception as e:
+            questionary.print(
+                f"\nFailed to place bid: {e}\n",
+                style="bold fg:red"
+            )
+
         questionary.press_any_key_to_continue().ask()
         return "home"
     
